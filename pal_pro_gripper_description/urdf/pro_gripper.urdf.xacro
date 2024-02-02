@@ -8,7 +8,7 @@
   <!-- Gazebo simulation plugins -->
   <xacro:include filename="$(find pal_pro_gripper_description)/urdf/pro_gripper.gazebo.xacro" />
 
-  <!-- <xacro:include filename="$(find pal_pro_gripper_description)/urdf/grasping_frames.xacro" /> -->
+  <xacro:include filename="$(find pal_pro_gripper_description)/urdf/grasping_frames.xacro" />
 
   <xacro:macro name="pro_finger" params="name side reflect">
 
@@ -225,6 +225,8 @@
     joint-->
     <xacro:pal_pro_gripper_transmission name="${name}" />
 
+    <!-- graping frames -->
+    <xacro:pal_robotiq_grasping_frames name="${name}" xyz="0 0 0.085"/>
 
     <xacro:gazebo_gripper_grasp name="${name}_grasp" palm_link="${parent}" finger_link_left="${name}_outer_finger_left_link" finger_link_right="${name}_outer_finger_right_link" />
 
