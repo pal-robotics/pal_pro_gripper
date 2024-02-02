@@ -143,7 +143,6 @@
 
   </xacro:macro>
 
-
   <xacro:macro name="pal_pro_gripper" params="name parent *origin">
 
     <link name="${name}_base_link">
@@ -199,13 +198,57 @@
     </gazebo>
     <gazebo reference="${name}_fingertip_right_link">
       <material>Gazebo/White</material>
-      <mu1>0.9</mu1>
-      <mu2>0.9</mu2>
+      <collision name="${name}_fingertip_right_link">
+        <surface>
+          <friction>
+            <torsional>
+              <coefficient>1000.0</coefficient>
+              <use_patch_radius>true</use_patch_radius>
+              <patch_radius>0.1</patch_radius>
+            </torsional>
+          </friction>
+          <contact>
+            <poissons_ratio>1.0</poissons_ratio>
+            <elastic_modulus>Inf</elastic_modulus>
+          </contact>
+        </surface>
+      </collision>
+      <mu1>Inf</mu1>
+      <mu2>Inf</mu2>
+      <maxVel>0.0</maxVel>
+      <kp>Inf</kp>
+      <kd>100.0</kd>
+      <fdir1>1 0 0</fdir1>
+      <maxVel>0.0</maxVel>
+      <minDepth>0.008</minDepth>
+      <maxContacts>10</maxContacts>
     </gazebo>
     <gazebo reference="${name}_fingertip_left_link">
       <material>Gazebo/White</material>
-      <mu1>0.9</mu1>
-      <mu2>0.9</mu2>
+      <collision name="${name}_fingertip_left_link">
+        <surface>
+          <friction>
+            <torsional>
+              <coefficient>1000.0</coefficient>
+              <use_patch_radius>true</use_patch_radius>
+              <patch_radius>0.1</patch_radius>
+            </torsional>
+          </friction>
+          <contact>
+            <poissons_ratio>1.0</poissons_ratio>
+            <elastic_modulus>Inf</elastic_modulus>
+          </contact>
+        </surface>
+      </collision>
+      <mu1>Inf</mu1>
+      <mu2>Inf</mu2>
+      <maxVel>0.0</maxVel>
+      <kp>Inf</kp>
+      <kd>100.0</kd>
+      <fdir1>1 0 0</fdir1>
+      <maxVel>0.0</maxVel>
+      <minDepth>0.008</minDepth>
+      <maxContacts>10</maxContacts>
     </gazebo>
     <gazebo reference="${name}_base_link">
       <material>Gazebo/DarkGrey</material>
@@ -228,9 +271,7 @@
     <!-- graping frames -->
     <xacro:pal_robotiq_grasping_frames name="${name}" xyz="0 0 0.085"/>
 
-    <xacro:gazebo_gripper_grasp name="${name}_grasp" palm_link="${parent}" finger_link_left="${name}_outer_finger_left_link" finger_link_right="${name}_outer_finger_right_link" />
-
-
+    <xacro:gazebo_gripper_grasp name="${name}_grasp" palm_link="${parent}" finger_link_left="${name}_fingertip_left_link" finger_link_right="${name}_fingertip_right_link"/>
   </xacro:macro>
 
 </robot>
