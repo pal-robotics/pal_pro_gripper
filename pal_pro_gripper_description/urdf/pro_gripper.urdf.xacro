@@ -42,7 +42,7 @@
       <parent link="${name}_base_link" />
       <child link="${name}_inner_finger_${side}_link" />
       <axis xyz="0 0 1" />
-      <limit lower="0" upper="${53 * deg_to_rad}" velocity="2" effort="0.1" />
+      <limit lower="0" upper="${53 * deg_to_rad}" velocity="2" effort="0.01" />
       <mimic joint="${name}_finger_joint" multiplier="1" offset="0" />
     </joint>
     <!-- Mimic finger joint-->
@@ -86,7 +86,7 @@
       <parent link="${name}_base_link" />
       <child link="${name}_outer_finger_${side}_link" />
       <axis xyz="0 0 1" />
-      <limit lower="0" upper="${53 * deg_to_rad}" velocity="2" effort="0.1" />
+      <limit lower="0" upper="${53 * deg_to_rad}" velocity="2" effort="0.01" />
       <xacro:if value="${side == 'left'}">
             <dynamics damping="0.03"/>
       </xacro:if>
@@ -132,7 +132,7 @@
       <parent link="${name}_inner_finger_${side}_link" />
       <child link="${name}_fingertip_${side}_link" />
       <axis xyz="0 0 1" />
-      <limit lower="${-53 * deg_to_rad}" upper="0" velocity="2" effort="0.1" />
+      <limit lower="${-53 * deg_to_rad}" upper="0" velocity="2" effort="0.01" />
       <mimic joint="${name}_finger_joint" multiplier="-1" offset="0" />
     </joint>
 
