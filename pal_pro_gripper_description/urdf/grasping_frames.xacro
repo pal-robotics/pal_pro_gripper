@@ -24,28 +24,28 @@
       xyz: distances from parent link
   -->
 
-  <xacro:macro name="pal_robotiq_grasping_frames" params="prefix xyz">
+  <xacro:macro name="pal_robotiq_grasping_frames" params="name xyz">
     <!-- Grasping frame X -->
-    <joint name="${prefix}grasping_frame_joint" type="fixed">
-      <parent link="${prefix}base_link" />
-      <child link="${prefix}grasping_frame" />
-      <origin xyz="${xyz}" rpy="0 -1.5708 0" />
+    <joint name="${name}_grasping_frame_joint" type="fixed">
+      <parent link="${name}_base_link" />
+      <child link="${name}_grasping_frame" />
+      <origin xyz="${xyz}" rpy="1.5708 -1.5708 0" />
     </joint>
-    <link name="${prefix}grasping_frame"/>
+    <link name="${name}_grasping_frame"/>
     <!-- Grasping frame Y -->
-    <joint name="${prefix}grasping_frame_Y_joint" type="fixed">
-      <parent link="${prefix}base_link" />
-      <child link="${prefix}grasping_frame_Y" />
+    <joint name="${name}_grasping_frame_Y_joint" type="fixed">
+      <parent link="${name}_base_link" />
+      <child link="${name}_grasping_frame_Y" />
       <origin xyz="${xyz}" rpy="1.5708 0 0" />
     </joint>
-    <link name="${prefix}grasping_frame_Y"/>
+    <link name="${name}_grasping_frame_Y"/>
     <!-- Grasping frame Z -->
-    <joint name="${prefix}grasping_frame_Z_joint" type="fixed">
-      <parent link="${prefix}base_link" />
-      <child link="${prefix}grasping_frame_Z" />
-      <origin xyz="${xyz}" rpy="0 0 0" />
+    <joint name="${name}_grasping_frame_Z_joint" type="fixed">
+      <parent link="${name}_base_link" />
+      <child link="${name}_grasping_frame_Z" />
+      <origin xyz="${xyz}" rpy="0 0 -1.5708" />
     </joint>
-    <link name="${prefix}grasping_frame_Z"/>
+    <link name="${name}_grasping_frame_Z"/>
   </xacro:macro>
 
 </robot>
