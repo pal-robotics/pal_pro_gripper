@@ -35,7 +35,7 @@
   <node pkg="tf_lookup" type="tf_lookup" name="tf_lookup" output="screen"/>
 
   <rosparam file="$(find pal_pro_gripper_controller_configuration)/config/joint_trajectory_controllers.yaml" command="load"/>
-  <include file="$(find pal_pro_gripper_controller_configuration_gazebo)/launch/gripper_controller.launch"/>
+  <include file="$(find pal_pro_gripper_controller_configuration)/launch/gripper_controller.launch"/>
 
 
 </launch>
