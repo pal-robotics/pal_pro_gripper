@@ -2,6 +2,9 @@
 Changelog for package pal_pro_gripper_wrapper
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.0.3 (2023-10-23)
 ------------------
 * Merge branch 'feat/use_urdf_utils' into 'main'

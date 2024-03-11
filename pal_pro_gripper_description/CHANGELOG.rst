@@ -2,6 +2,14 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'tpe/fix/remove_config_gazebo_package' into 'main'
+  point to the pal_pro_gripper_controller_configuration package
+  See merge request robots/pal_pro_gripper!12
+* point to the pal_pro_gripper_controller_configuration package
+* Contributors: davidterkuile, thomas.peyrucain
+
 0.0.3 (2023-10-23)
 ------------------
 * Merge branch 'feat/use_urdf_utils' into 'main'
