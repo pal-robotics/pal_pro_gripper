@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.4 (2024-03-11)
+------------------
 * Merge branch 'tpe/fix/remove_config_gazebo_package' into 'main'
   point to the pal_pro_gripper_controller_configuration package
   See merge request robots/pal_pro_gripper!12
