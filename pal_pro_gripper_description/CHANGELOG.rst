@@ -2,6 +2,17 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'sma/fixes' into 'main'
+  FIxes for grasping
+  See merge request robots/pal_pro_gripper!9
+* updated gazebo tags
+* decreased effor in joints
+* added grasping frames to model
+* Updated grasping frames
+* Contributors: davidterkuile, sergiacosta
+
 0.0.4 (2024-03-11)
 ------------------
 * Merge branch 'tpe/fix/remove_config_gazebo_package' into 'main'

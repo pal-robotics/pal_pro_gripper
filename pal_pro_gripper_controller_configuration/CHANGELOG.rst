@@ -2,6 +2,14 @@
 Changelog for package pal_pro_gripper_controller_configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'sma/fixes' into 'main'
+  FIxes for grasping
+  See merge request robots/pal_pro_gripper!9
+* increase timeout of the controller
+* Contributors: davidterkuile, ileniaperrella
+
 0.0.4 (2024-03-11)
 ------------------
 
