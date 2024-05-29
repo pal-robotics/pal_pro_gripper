@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.5 (2024-05-29)
+------------------
 * Merge branch 'sma/fixes' into 'main'
   FIxes for grasping
   See merge request robots/pal_pro_gripper!9
