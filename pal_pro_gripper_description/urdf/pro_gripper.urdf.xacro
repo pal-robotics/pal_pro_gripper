@@ -8,7 +8,7 @@
   <!-- Gazebo simulation plugins -->
   <xacro:include filename="$(find pal_pro_gripper_description)/urdf/pro_gripper.gazebo.xacro" />
 
-  <!-- <xacro:include filename="$(find pal_pro_gripper_description)/urdf/grasping_frames.xacro" /> -->
+  <xacro:include filename="$(find pal_pro_gripper_description)/urdf/grasping_frames.xacro" />
 
   <xacro:macro name="pro_finger" params="name side reflect">
 
@@ -42,7 +42,7 @@
       <parent link="${name}_base_link" />
       <child link="${name}_inner_finger_${side}_link" />
       <axis xyz="0 0 1" />
-      <limit lower="0" upper="${53 * deg_to_rad}" velocity="2" effort="0.1" />
+      <limit lower="0" upper="${53 * deg_to_rad}" velocity="2" effort="0.01" />
       <mimic joint="${name}_finger_joint" multiplier="1" offset="0" />
     </joint>
     <!-- Mimic finger joint-->
@@ -86,7 +86,7 @@
       <parent link="${name}_base_link" />
       <child link="${name}_outer_finger_${side}_link" />
       <axis xyz="0 0 1" />
-      <limit lower="0" upper="${53 * deg_to_rad}" velocity="2" effort="0.1" />
+      <limit lower="0" upper="${53 * deg_to_rad}" velocity="2" effort="0.01" />
       <xacro:if value="${side == 'left'}">
             <dynamics damping="0.03"/>
       </xacro:if>
@@ -132,7 +132,7 @@
       <parent link="${name}_inner_finger_${side}_link" />
       <child link="${name}_fingertip_${side}_link" />
       <axis xyz="0 0 1" />
-      <limit lower="${-53 * deg_to_rad}" upper="0" velocity="2" effort="0.1" />
+      <limit lower="${-53 * deg_to_rad}" upper="0" velocity="2" effort="0.01" />
       <mimic joint="${name}_finger_joint" multiplier="-1" offset="0" />
     </joint>
 
@@ -142,7 +142,6 @@
       has_pid="false" multiplier="-1.0" offset="0.0" />
 
   </xacro:macro>
-
 
   <xacro:macro name="pal_pro_gripper" params="name parent *origin">
 
@@ -199,13 +198,57 @@
     </gazebo>
     <gazebo reference="${name}_fingertip_right_link">
       <material>Gazebo/White</material>
-      <mu1>0.9</mu1>
-      <mu2>0.9</mu2>
+      <collision name="${name}_fingertip_right_link">
+        <surface>
+          <friction>
+            <torsional>
+              <coefficient>1000.0</coefficient>
+              <use_patch_radius>true</use_patch_radius>
+              <patch_radius>0.1</patch_radius>
+            </torsional>
+          </friction>
+          <contact>
+            <poissons_ratio>1.0</poissons_ratio>
+            <elastic_modulus>Inf</elastic_modulus>
+          </contact>
+        </surface>
+      </collision>
+      <mu1>Inf</mu1>
+      <mu2>Inf</mu2>
+      <maxVel>0.0</maxVel>
+      <kp>Inf</kp>
+      <kd>100.0</kd>
+      <fdir1>1 0 0</fdir1>
+      <maxVel>0.0</maxVel>
+      <minDepth>0.008</minDepth>
+      <maxContacts>10</maxContacts>
     </gazebo>
     <gazebo reference="${name}_fingertip_left_link">
       <material>Gazebo/White</material>
-      <mu1>0.9</mu1>
-      <mu2>0.9</mu2>
+      <collision name="${name}_fingertip_left_link">
+        <surface>
+          <friction>
+            <torsional>
+              <coefficient>1000.0</coefficient>
+              <use_patch_radius>true</use_patch_radius>
+              <patch_radius>0.1</patch_radius>
+            </torsional>
+          </friction>
+          <contact>
+            <poissons_ratio>1.0</poissons_ratio>
+            <elastic_modulus>Inf</elastic_modulus>
+          </contact>
+        </surface>
+      </collision>
+      <mu1>Inf</mu1>
+      <mu2>Inf</mu2>
+      <maxVel>0.0</maxVel>
+      <kp>Inf</kp>
+      <kd>100.0</kd>
+      <fdir1>1 0 0</fdir1>
+      <maxVel>0.0</maxVel>
+      <minDepth>0.008</minDepth>
+      <maxContacts>10</maxContacts>
     </gazebo>
     <gazebo reference="${name}_base_link">
       <material>Gazebo/DarkGrey</material>
@@ -225,10 +268,10 @@
     joint-->
     <xacro:pal_pro_gripper_transmission name="${name}" />
 
+    <!-- graping frames -->
+    <xacro:pal_robotiq_grasping_frames name="${name}" xyz="0 0 0.085"/>
 
-    <xacro:gazebo_gripper_grasp name="${name}_grasp" palm_link="${parent}" finger_link_left="${name}_outer_finger_left_link" finger_link_right="${name}_outer_finger_right_link" />
-
-
+    <xacro:gazebo_gripper_grasp name="${name}_grasp" palm_link="${parent}" finger_link_left="${name}_fingertip_left_link" finger_link_right="${name}_fingertip_right_link"/>
   </xacro:macro>
 
 </robot>

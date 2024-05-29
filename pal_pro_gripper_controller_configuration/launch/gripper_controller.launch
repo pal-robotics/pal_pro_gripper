@@ -5,7 +5,7 @@
   <arg name="suffix" value="$(eval ('' if side == '' else '_' + side))"/>
   <node name="gripper$(arg suffix)_controllers_spawner"
         pkg="controller_manager" type="spawner" output="screen"
-        args="--timeout 120
+        args="--timeout 300
               gripper$(arg suffix)_controller" />
               
 
