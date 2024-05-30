@@ -8,10 +8,10 @@
         args="--timeout 300
               gripper$(arg suffix)_controller" />
               
-
+<!-- 
   <include file="$(find pal_pro_gripper_wrapper)/launch/grasping_service.launch">
     <arg name="side" value="$(arg side)"/>
-  </include>
+  </include> -->
 
   <rosparam command="load" file="$(find pal_pro_gripper_controller_configuration)/config/gazebo_pids.yaml" ns="/gains/gripper$(arg suffix)_finger_joint" if="$(eval is_simulation)"/>
 
