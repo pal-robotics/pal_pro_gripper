@@ -2,6 +2,14 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'dtk/fix/small-issues' into 'main'
+  Dtk/fix/small issues
+  See merge request robots/pal_pro_gripper!15
+* Update gripper joint limit based on new encoder reduction of 81
+* Contributors: David ter Kuile, davidterkuile
+
 0.0.5 (2024-05-29)
 ------------------
 * Merge branch 'sma/fixes' into 'main'

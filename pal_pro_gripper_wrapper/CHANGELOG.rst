@@ -2,6 +2,9 @@
 Changelog for package pal_pro_gripper_wrapper
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.0.5 (2024-05-29)
 ------------------
 
