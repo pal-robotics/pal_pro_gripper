@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_controller_configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.6 (2024-05-31)
+------------------
 * Merge branch 'dtk/fix/small-issues' into 'main'
   Dtk/fix/small issues
   See merge request robots/pal_pro_gripper!15
