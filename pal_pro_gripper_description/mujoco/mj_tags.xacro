@@ -3,7 +3,7 @@
 
     <xacro:macro name="mj_gripper_actuators" params="name">
         <xacro:if value="${mj_control == 'position' or mj_control == 'motor'}">
-            <position name="${name}_position" joint="${name}_inner_finger_left_joint" kp="100" ctrlrange=" 0 0.802851 " />
+            <position name="${name}_finger_joint" joint="${name}_finger_joint" kp="100" ctrlrange=" 0 0.07938 " />
         </xacro:if>
     </xacro:macro>
 
@@ -19,7 +19,14 @@
     <xacro:macro name="mj_gripper_equality" params="name anchor_r anchor_l" >
         <connect name="${name}_r" body1="${name}_fingertip_right_link" body2="${name}_outer_finger_right_link"  active="true" anchor="${anchor_r}" solref="0.005 1" solimp="0.95 0.99 0.001"/>
         <connect name="${name}_l" body1="${name}_fingertip_left_link" body2="${name}_outer_finger_left_link" active="true"  anchor="${anchor_l}" solref="0.005 1" solimp="0.95 0.99 0.001"/>
-        <joint joint1="${name}_inner_finger_left_joint" joint2="${name}_inner_finger_right_joint" polycoef="0 1 0 0 0" solref="0.005 1" solimp="0.95 0.99 0.001"/>  
+
+        <joint joint1="${name}_finger_joint" joint2="${name}_outer_finger_right_joint" polycoef="0 -0.1208  0 0 0" solref="0.005 1" solimp="0.95 0.99 0.001"/>  
+        <joint joint1="${name}_finger_joint" joint2="${name}_inner_finger_right_joint" polycoef="0 -0.1208  0 0 0" solref="0.005 1" solimp="0.95 0.99 0.001"/>  
+        <joint joint1="${name}_finger_joint" joint2="${name}_fingertip_right_joint"    polycoef="0 0.1208  0 0 0"  solref="0.005 1" solimp="0.95 0.99 0.001"/>  
+        <joint joint1="${name}_finger_joint" joint2="${name}_finger_right_joint"       polycoef="0 4.545 0 0 0"  solref="0.005 1" solimp="0.95 0.99 0.001"/>  
+        <joint joint1="${name}_finger_joint" joint2="${name}_outer_finger_left_joint"  polycoef="0 -0.1208  0 0 0" solref="0.005 1" solimp="0.95 0.99 0.001"/>  
+        <joint joint1="${name}_finger_joint" joint2="${name}_inner_finger_left_joint"  polycoef="0 -0.1208  0 0 0" solref="0.005 1" solimp="0.95 0.99 0.001"/>  
+        <joint joint1="${name}_finger_joint" joint2="${name}_fingertip_left_joint"     polycoef="0 0.1208  0 0 0"  solref="0.005 1" solimp="0.95 0.99 0.001"/>
     </xacro:macro>
 
     <xacro:macro name="mj_gripper_actuator_pose" params="property_name">
