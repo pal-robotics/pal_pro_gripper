@@ -14,9 +14,12 @@
     <!-- false, true -->
     <xacro:arg name="use_sim_time" default="False"/>
 
-     <!-- Mujoco args -->
-    <xacro:arg name="sim_type" default="gazebo" />
+    <!-- mujoco-ros2-control, mujoco, gazebo, no-simulation -->
+    <xacro:arg name="sim_type" default="no-simulation" />
+
+    <!-- false, position, motor -->
     <xacro:arg name="mj_control" default="position" />
+
     <xacro:arg name="world_name" default="floor" />
 
     <!-- PROPERTIES -->
@@ -61,8 +64,6 @@
         <xacro:include filename="$(find pal_mujoco_scenes)/scenes/${world_name}.xacro" />
         
         <mujoco_inputs> 
-            <!-- Mujoco environment -->
-            <!-- <xacro:mj_common light_target="base_link"/> -->
 
             <!-- Mujoco environment -->
             <scene>
@@ -73,15 +74,13 @@
                 <!-- Contact-->
                 <xacro:mj_gripper_contact name="gripper"/>
 
+                <!-- Equality-->
+                <xacro:mj_gripper_equality name="gripper" anchor_r="0.014 -0.0015 0" anchor_l="0.014 -0.001 0"/>
+                
                 <!-- Actuator-->
-                <xacro:if value="${sim_type == 'mujoco' or sim_type == 'mujoco-ros2-control'}">
-                    <!-- Equality-->
-                    <xacro:mj_gripper_equality name="gripper" anchor_r="0.014 -0.0015 0" anchor_l="0.014 -0.001 0"/>
-                    
-                    <actuator>
-                        <xacro:mj_gripper_actuators name="gripper"/>
-                    </actuator>
-                </xacro:if>
+                <actuator>
+                    <xacro:mj_gripper_actuators name="gripper"/>
+                </actuator>
 
                 <default>
                     <default class="visual">
