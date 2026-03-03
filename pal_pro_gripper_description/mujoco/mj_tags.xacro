@@ -2,8 +2,11 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="pal_pro_gripper">
 
     <xacro:macro name="mj_gripper_actuators" params="name">
-        <xacro:if value="${mj_control == 'position' or mj_control == 'motor'}">
-            <position name="${name}_finger_joint" joint="${name}_finger_joint" kp="100" ctrlrange=" 0 0.07938 " />
+        <xacro:if value="${mj_control == 'position'}">
+            <position name="${name}_finger_joint_position" joint="${name}_finger_joint" kp="100" ctrlrange=" 0 0.07938 " />
+        </xacro:if>
+        <xacro:if value="${mj_control == 'motor'}">
+            <motor name="${name}_finger_joint_motor" joint="${name}_finger_joint"  ctrllimited="true" ctrlrange="-8 8" />
         </xacro:if>
     </xacro:macro>
 
