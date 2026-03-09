@@ -18,7 +18,7 @@ limitations under the License.
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:macro name="ros2_control_pal_pro_gripper" params="name reduction sim_type:=gazebo">
 
-    <xacro:macro name="ros2_control_pal_pro_gripper_mimic_joint" params="mimic_joint_name actuated_joint_name multipliers ">
+    <xacro:macro name="ros2_control_pal_pro_gripper_mimic_joint" params="mimic_joint_name actuated_joint_name multiplier ">
 
       <joint name="${mimic_joint_name}">
         <param name="mimic">${actuated_joint_name}</param>
