@@ -17,7 +17,7 @@ limitations under the License.
 
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:macro name="pal_pro_gripper_transmission" params="name">
+  <xacro:macro name="pal_pro_gripper_transmission" params="name sim_type:=gazebo">
     <transmission name="${name}_trans">
         <plugin>pal_pro_gripper_transmissions/PalGripperTransmission</plugin>
 
