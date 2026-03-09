@@ -60,10 +60,8 @@ limitations under the License.
 
     <!-- Transmission only set to left finger joint, other joints are passive and mimic this
     joint-->
-    <xacro:if value="${sim_type not in ['mujoco', 'mujoco-ros2-control']}">
-      <xacro:include filename="$(find pal_pro_gripper_description)/urdf/gripper.transmission.xacro" />
-      <xacro:pal_pro_gripper_transmission name="${name}_finger"/>
-    </xacro:if>
+    <xacro:include filename="$(find pal_pro_gripper_description)/urdf/gripper.transmission.xacro" />
+    <xacro:pal_pro_gripper_transmission name="${name}_finger"/>
 
   </xacro:macro>
 </robot>
