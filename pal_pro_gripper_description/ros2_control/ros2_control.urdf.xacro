@@ -43,7 +43,7 @@
       </hardware>
 
       <!-- pal-pro-gripper -->
-      <xacro:ros2_control_pal_pro_gripper name="gripper" reduction="1.0"/>
+      <xacro:ros2_control_pal_pro_gripper name="gripper" reduction="1.0" sim_type="${sim_type}"/>
 
     </ros2_control>
   </xacro:macro>
