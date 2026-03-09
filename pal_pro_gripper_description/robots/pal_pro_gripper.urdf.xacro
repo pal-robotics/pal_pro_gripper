@@ -15,7 +15,7 @@
     <xacro:arg name="use_sim_time" default="False"/>
 
     <!-- mujoco-ros2-control, mujoco, gazebo, no-simulation -->
-    <xacro:arg name="sim_type" default="no-simulation" />
+    <xacro:arg name="sim_type" default="gazebo" />
 
     <!-- false, position, motor -->
     <xacro:arg name="mj_control" default="position" />
