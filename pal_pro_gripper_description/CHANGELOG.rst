@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.11.5 (2026-03-19)
+-------------------
 * Add safety controller
 * Contributors: thomas.peyrucain
 
