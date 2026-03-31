@@ -8,6 +8,9 @@
     <!-- False, True -->
     <xacro:arg name="tool_changer" default="False"/>
 
+    <!-- False, True -->
+    <xacro:arg name="calibration_tool" default="False"/>
+
     <!-- false, true -->
     <xacro:arg name="use_sim_time" default="False"/>
 
@@ -76,6 +79,6 @@
     </xacro:if>
 
     <!-- ROS 2 Control -->
-    <xacro:pal_pro_gripper_ros2_control />
+    <xacro:pal_pro_gripper_ros2_control use_sim_time="${use_sim_time}" sim_type="${sim_type}" />
 
 </robot>
