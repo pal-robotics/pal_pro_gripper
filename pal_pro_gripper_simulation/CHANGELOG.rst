@@ -1,9 +1,13 @@
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Changelog for package pal_pro_gripper
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package pal_pro_gripper_simulation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Forthcoming
 -----------
+* Fix pal_pro_gripper_simulation package version
+* Fix version simulation pkg
+* Add simulation package
+* Contributors: Aina, Noel Jimenez
 
 1.11.5 (2026-03-19)
 -------------------
@@ -61,15 +65,26 @@ Forthcoming
 
 1.3.0 (2024-09-19)
 ------------------
+* Gripper std and suggested changes
+* Contributors: oscarmartinez
 
 1.2.0 (2024-08-09)
 ------------------
+* Update Changelog
+* Contributors: David ter Kuile
 
 1.1.0 (2024-08-06)
 ------------------
+* Update changelogs
+* Contributors: Noel Jimenez
 
 1.0.6 (2024-07-19)
 ------------------
+* Generate Changelog
+* Remove simulation package from gazebo model env variable
+* fix ament_cmake_auto builtool
+* create simulation package & changing gazebo launch files into this pkg
+* Contributors: Aina, David ter Kuile
 
 1.0.5 (2024-04-23)
 ------------------
@@ -88,12 +103,6 @@ Forthcoming
 
 1.0.0 (2024-01-29)
 ------------------
-* Merge branch 'ros2-migration' into 'humble-devel'
-  Ros2 migration
-  See merge request robots/pal_pro_gripper!5
-* update to 3.8 the cmake_minimum_required Version
-* migration of CMakeLists.txt and package.xml to ros2
-* Contributors: Adria Roig, ileniaperrella
 
 0.0.3 (2023-10-23)
 ------------------
@@ -103,8 +112,3 @@ Forthcoming
 
 0.0.1 (2023-07-03)
 ------------------
-* Merge branch 'create-urdf' into 'main'
-  Create urdf
-  See merge request robots/pal_pro_gripper!1
-* Add controller_config and controller_config gazebo
-* Contributors: David ter Kuile, davidterkuile

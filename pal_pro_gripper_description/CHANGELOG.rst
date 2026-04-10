@@ -2,6 +2,12 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add support for new gazebo
+* Add sim_type to ros2_control
+* Contributors: Aina, thomaspeyrucain
+
 1.11.5 (2026-03-19)
 -------------------
 * Add safety controller
