@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.12.0 (2026-04-10)
+-------------------
 * Fix pal_pro_gripper_simulation package version
 * Fix version simulation pkg
 * Add simulation package
