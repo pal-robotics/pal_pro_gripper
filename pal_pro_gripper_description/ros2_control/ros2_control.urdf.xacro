@@ -27,7 +27,12 @@
             <plugin>mujoco_ros2_control/MujocoSystem</plugin>
           </xacro:if>
           <xacro:if value="${sim_type == 'gazebo'}">
-            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+            <xacro:if value="${gazebo_version == 'classic'}">
+              <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+            </xacro:if>
+            <xacro:if value="${gazebo_version == 'gazebo'}">
+              <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+            </xacro:if>
           </xacro:if>
         </xacro:if>
         <xacro:unless value="$(arg use_sim_time)">

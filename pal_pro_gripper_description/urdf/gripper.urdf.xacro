@@ -18,7 +18,7 @@
       <child link="${name}_screw_${side}_link"/>
       <axis xyz="0 1 0"/>
 
-      <limit lower="0.0" upper="0.07938" velocity="2" effort="0.1"/>
+      <limit lower="0.0" upper="0.07938" velocity="2" effort="10.0"/>
       <safety_controller k_position="20" k_velocity="20" soft_lower_limit="${0.0 + gripper_eps}" soft_upper_limit="${0.07938 - gripper_eps}" />
 
       <xacro:if value="${side == 'left'}">
@@ -311,14 +311,16 @@
       <mu2>0.9</mu2>
     </gazebo>
 
-    <gazebo>
-      <plugin name="mimic_joint_plugin_right" filename="libgazebo_ros_mimic_joint.so">
-        <joint>gripper_finger_joint</joint>
-        <mimicJoint>gripper_finger_right_joint</mimicJoint>
-        <multiplier>1.0</multiplier>
-        <offset>0.0</offset>
-      </plugin>
-    </gazebo>
+    <xacro:if value="${gazebo_version == 'classic'}">
+      <gazebo>
+        <plugin name="mimic_joint_plugin_right" filename="libgazebo_ros_mimic_joint.so">
+          <joint>gripper_finger_joint</joint>
+          <mimicJoint>gripper_finger_right_joint</mimicJoint>
+          <multiplier>1.0</multiplier>
+          <offset>0.0</offset>
+        </plugin>
+      </gazebo>
+    </xacro:if>
 
     <!-- Base finger links -->
     <gazebo reference="${name}_base_finger_left_link">

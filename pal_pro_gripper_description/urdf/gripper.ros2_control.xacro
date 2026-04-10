@@ -18,11 +18,23 @@ limitations under the License.
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:macro name="ros2_control_pal_pro_gripper" params="name reduction sim_type:=no-simulation">
 
+    <hardware>
+      <xacro:if value="${gazebo_version == 'classic'}">
+        <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+      </xacro:if>
+      <xacro:if value="${gazebo_version == 'gazebo'}">
+        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+      </xacro:if>
+    </hardware>
+
     <xacro:macro name="ros2_control_pal_pro_gripper_mimic_joint" params="mimic_joint_name actuated_joint_name multiplier sim_type:=no-simulation">
 
       <joint name="${mimic_joint_name}">
         <param name="mimic">${actuated_joint_name}</param>
         <param name="multiplier">${multiplier}</param>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <state_interface name="effort"/>
       </joint>
 
     </xacro:macro>

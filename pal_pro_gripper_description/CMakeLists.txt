@@ -12,4 +12,4 @@ if(BUILD_TESTING)
 endif()
 
 ament_python_install_package(${PROJECT_NAME})
-ament_auto_package(INSTALL_TO_SHARE config gazebo robots launch mujoco meshes urdf ros2_control)
+ament_auto_package(INSTALL_TO_SHARE config robots launch mujoco meshes urdf ros2_control)
