@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>pal_pro_gripper</name>
-  <version>1.12.0</version>
+  <version>1.12.1</version>
   <description>The pal_pro_gripper package</description>
 
   <maintainer email="david.terkuile@pal-robotics.com">David ter Kuile</maintainer>
