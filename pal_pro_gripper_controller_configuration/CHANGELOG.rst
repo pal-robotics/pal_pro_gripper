@@ -2,6 +2,11 @@
 Changelog for package pal_pro_gripper_controller_configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixing open loop param
+* Contributors: vivianamorlando
+
 1.12.0 (2026-04-10)
 -------------------
 
