@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.12.2 (2026-04-20)
+-------------------
 * Remove extra state interfaces and gazebo plugin
 * Contributors: Noel Jimenez
 
