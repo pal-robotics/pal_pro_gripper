@@ -69,6 +69,7 @@
     </xacro:if>
 
     <!-- ROS 2 Control -->
-    <xacro:pal_pro_gripper_ros2_control use_sim_time="${use_sim_time}" sim_type="${sim_type}" />
-
+    <xacro:if value="${sim_type != 'mujoco'}">
+        <xacro:pal_pro_gripper_ros2_control use_sim_time="${use_sim_time}" sim_type="${sim_type}"/>
+    </xacro:if>
 </robot>
