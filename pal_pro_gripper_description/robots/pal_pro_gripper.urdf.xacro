@@ -14,12 +14,11 @@
     <!-- false, true -->
     <xacro:arg name="use_sim_time" default="False"/>
 
-    <!-- mujoco-ros2-control, mujoco, gazebo, no-simulation -->
+    <!-- mujoco-ros2-control, mujoco, gazebo-->
     <xacro:arg name="sim_type" default="gazebo" />
-
     <!-- false, position, motor -->
-    <xacro:arg name="mj_control" default="position" />
-
+    <xacro:arg name="mj_control" default="false" />
+    <!-- floor -->
     <xacro:arg name="world_name" default="floor" />
 
     <!-- PROPERTIES -->
@@ -29,9 +28,17 @@
     <xacro:property name="name" value="gripper"/>
 
     <!-- Mujoco properties -->
-    <xacro:property name="sim_type" value="$(arg sim_type)" /> 
+    <xacro:property name="sim_type" value="$(arg sim_type)" />
     <xacro:property name="mj_control" value="$(arg mj_control)"/>
     <xacro:property name="world_name" value="$(arg world_name)"/>
+
+    <!-- Properties check -->
+    <xacro:if value="${sim_type not in ['mujoco-ros2-control', 'mujoco', 'gazebo']}">
+        <xacro:wrong_sim_type />
+    </xacro:if>
+    <xacro:unless value="$(arg use_sim_time)">
+        <xacro:property name="sim_type" value="gazebo" />
+    </xacro:unless>
 
     <!-- INCLUDES -->
 
