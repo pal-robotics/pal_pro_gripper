@@ -12,14 +12,23 @@
 
     <xacro:property name="finger_joint_name" value="${name + '_finger_joint' if side == 'left' else name + '_finger_' + side + '_joint'}" />
 
+    <!-- TODO: set lower limit back to 0 when moving to Gazebo Harmonic or ROS 2 Jazzy -->
+    <!-- See https://github.com/gazebosim/gz-sim/issues/1684 for more information -->
+    <xacro:if value="${gazebo_version == 'classic'}">
+      <xacro:property name="gripper_lower_limit" value="0.0"/>
+    </xacro:if>
+    <xacro:if value="${gazebo_version == 'gazebo'}">
+      <xacro:property name="gripper_lower_limit" value="-1e-3"/>
+    </xacro:if>
+
     <joint name="${finger_joint_name}" type="prismatic">
       <xacro:origin_finger_joint reflect="${reflect}"/>
       <parent link="${name}_base_finger_${side}_link"/>
       <child link="${name}_screw_${side}_link"/>
       <axis xyz="0 1 0"/>
 
-      <limit lower="0.0" upper="0.07938" velocity="2" effort="10.0"/>
-      <safety_controller k_position="20" k_velocity="20" soft_lower_limit="${0.0 + gripper_eps}" soft_upper_limit="${0.07938 - gripper_eps}" />
+      <limit lower="${gripper_lower_limit}" upper="0.07938" velocity="2" effort="10.0"/>
+      <safety_controller k_position="20" k_velocity="20" soft_lower_limit="${gripper_lower_limit + gripper_eps}" soft_upper_limit="${0.07938 - gripper_eps}" />
 
       <xacro:if value="${side == 'left'}">
         <dynamics damping="0.03"/>
