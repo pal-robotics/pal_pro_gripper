@@ -2,6 +2,11 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Change the init value + change the lower limit temporally
+* Contributors: thomas.peyrucain
+
 1.12.2 (2026-04-20)
 -------------------
 * Remove extra state interfaces and gazebo plugin
