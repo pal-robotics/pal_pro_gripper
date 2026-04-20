@@ -29,9 +29,6 @@ from pal_pro_gripper_description.launch_arguments import PalProGripperArgs
 class LaunchArguments(LaunchArgumentsBase):
     tool_changer: DeclareLaunchArgument = PalProGripperArgs.tool_changer
     use_sim_time: DeclareLaunchArgument = CommonArgs.use_sim_time
-    sim_type: DeclareLaunchArgument = CommonArgs.sim_type
-    mj_control: DeclareLaunchArgument = CommonArgs.mj_control
-    world_name: DeclareLaunchArgument = CommonArgs.world_name
 
 
 def generate_launch_description():
@@ -54,9 +51,7 @@ def declare_actions(launch_description: LaunchDescription, launch_args: LaunchAr
         paths=['launch', 'robot_state_publisher.launch.py'],
         launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time'),
                           'tool_changer': LaunchConfiguration('tool_changer'),
-                          'mj_control': LaunchConfiguration('mj_control'),
-                          'sim_type': LaunchConfiguration('sim_type'),
-                          'world_name': LaunchConfiguration('world_name')})
+                          })
 
     launch_description.add_action(robot_state_publisher)
 
