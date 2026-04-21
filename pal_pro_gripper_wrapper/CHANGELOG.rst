@@ -2,6 +2,11 @@
 Changelog for package pal_pro_gripper_wrapper
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* change open value to prevent overheating
+* Contributors: matteovillani
+
 1.12.3 (2026-04-20)
 -------------------
 

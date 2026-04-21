@@ -2,6 +2,9 @@
 Changelog for package pal_pro_gripper_bringup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.12.3 (2026-04-20)
 -------------------
 

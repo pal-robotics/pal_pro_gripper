@@ -2,6 +2,12 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* gripper initial_value reduced to 0.07 instead of 0.079
+* Reduce the gripper opening position to avoid hit the joint limit when completely open
+* Contributors: ileniaperrella
+
 1.12.3 (2026-04-20)
 -------------------
 * Change the init value + change the lower limit temporally
