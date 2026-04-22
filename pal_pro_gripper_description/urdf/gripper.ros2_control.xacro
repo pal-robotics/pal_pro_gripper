@@ -30,13 +30,15 @@ limitations under the License.
     <joint name="${name}_finger_joint">
       <command_interface name="position"/>
       <state_interface name="position">
-        <!-- TODO: set initial_value back to 0.07938 when moving to Gazebo Harmonic or ROS 2 Jazzy -->
-        <!-- See https://robotics.stackexchange.com/questions/85506/how-to-do-mimic-joints-that-work-in-gazebo for more information -->
-        <xacro:if value="${gazebo_version == 'classic'}">
-          <param name="initial_value">0.07</param>
-        </xacro:if>
-        <xacro:if value="${gazebo_version == 'gazebo'}">
-          <param name="initial_value">0.0</param>
+        <xacro:if value="${sim_type == 'gazebo'}">
+          <!-- TODO: set initial_value back to 0.07938 when moving to Gazebo Harmonic or ROS 2 Jazzy -->
+          <!-- See https://robotics.stackexchange.com/questions/85506/how-to-do-mimic-joints-that-work-in-gazebo for more information -->
+          <xacro:if value="${gazebo_version == 'classic'}">
+            <param name="initial_value">0.07</param>
+          </xacro:if>
+          <xacro:if value="${gazebo_version == 'gazebo'}">
+            <param name="initial_value">0.0</param>
+          </xacro:if>
         </xacro:if>
       </state_interface>
       <state_interface name="velocity"/>
