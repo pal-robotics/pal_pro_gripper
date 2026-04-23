@@ -7,7 +7,7 @@
             <position name="${name}_finger_joint_position" joint="${name}_finger_joint" kp="100" ctrlrange="${finger_lower_limit} ${finger_upper_limit}" />
         </xacro:if>
         <xacro:if value="${mj_control == 'motor'}">
-            <motor name="${name}_finger_joint_motor" joint="${name}_finger_joint"  ctrllimited="true" ctrlrange="${finger_mj_min_effort} ${finger_mj_max_effort}" />
+            <motor name="${name}_finger_joint_motor" joint="${name}_finger_joint"  ctrllimited="true" ctrlrange="-${finger_mj_max_effort} ${finger_mj_max_effort}" />
         </xacro:if>
     </xacro:macro>
 
