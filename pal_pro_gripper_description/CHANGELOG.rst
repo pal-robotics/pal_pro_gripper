@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.12.5 (2026-05-31)
+-------------------
 * Merge branch 'add/mj_tag_properties' into 'humble-devel'
   Add MuJoCo tag properties for mujoco simulation
   See merge request robots/pal_pro_gripper!55
