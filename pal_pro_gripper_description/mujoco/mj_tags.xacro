@@ -22,5 +22,12 @@
         <joint joint1="${name}_inner_finger_left_joint" joint2="${name}_inner_finger_right_joint" polycoef="0 1 0 0 0" solref="0.005 1" solimp="0.95 0.99 0.001"/>  
     </xacro:macro>
 
-    
+    <xacro:macro name="mj_gripper_actuator_pose" params="property_name">
+        <xacro:property name="${property_name}" value="0" scope="parent"/>
+    </xacro:macro>
+
+    <xacro:macro name="mj_gripper_pose" params="property_name">
+        <xacro:property name="${property_name}" value="0 0 0 0 0 0 0 0" scope="parent"/>
+    </xacro:macro>
+
 </robot>
