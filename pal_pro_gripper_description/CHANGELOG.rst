@@ -2,6 +2,14 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'add/mj_tag_properties' into 'humble-devel'
+  Add MuJoCo tag properties for mujoco simulation
+  See merge request robots/pal_pro_gripper!55
+* Add MuJoCo tag properties for mujoco simulation
+* Contributors: Sai Kishor Kothakota
+
 1.12.4 (2026-04-21)
 -------------------
 * gripper initial_value reduced to 0.07 instead of 0.079
