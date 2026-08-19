@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.12.6 (2026-08-19)
+-------------------
 * Merge branch 'opo/mujoco-sim' into 'humble-devel'
   mujoco sim changes
   See merge request robots/pal_pro_gripper!47
