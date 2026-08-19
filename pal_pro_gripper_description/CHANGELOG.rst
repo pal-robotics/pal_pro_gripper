@@ -2,6 +2,32 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'opo/mujoco-sim' into 'humble-devel'
+  mujoco sim changes
+  See merge request robots/pal_pro_gripper!47
+* fix argument
+* put initial state just for gazebo
+* adapt transmission for the mujoco ros2 control
+* add sim_type arg for the ros2-control tags
+* parametrize common args in gripper_limits.xacro
+* move mj tags to gripper.urdf.xacro
+* add check for the value of the sim_type arg
+* remove extra arguments from show_args
+* fixed multiplier arg
+* fixed param
+* added sim_type for transmission
+* added sym_type parameter in transmission
+* loading transmission also for sim in mujoco
+* added args in show.launch
+* fixed default sim_type
+* added motor actuator
+* fixed transmission actuator name for mujoco
+* removed extra if
+* align to the new mujoco_ros2_control
+* Contributors: Ortisa Poci, Sai Kishor Kothakota
+
 1.12.5 (2026-05-31)
 -------------------
 * Merge branch 'add/mj_tag_properties' into 'humble-devel'
