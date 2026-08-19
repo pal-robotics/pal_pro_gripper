@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- 
+<!--
 Copyright (c) 2023 PAL Robotics S.L. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +16,9 @@ limitations under the License.
 -->
 
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="ros2_control_pal_pro_gripper" params="name reduction sim_type:=no-simulation">
+  <xacro:macro name="ros2_control_pal_pro_gripper" params="name reduction sim_type:=^|gazebo">
 
-    <xacro:macro name="ros2_control_pal_pro_gripper_mimic_joint" params="mimic_joint_name actuated_joint_name multiplier sim_type:=no-simulation">
+    <xacro:macro name="ros2_control_pal_pro_gripper_mimic_joint" params="mimic_joint_name actuated_joint_name multiplier ">
 
       <joint name="${mimic_joint_name}">
         <param name="mimic">${actuated_joint_name}</param>
@@ -30,13 +30,15 @@ limitations under the License.
     <joint name="${name}_finger_joint">
       <command_interface name="position"/>
       <state_interface name="position">
-        <!-- TODO: set initial_value back to 0.07938 when moving to Gazebo Harmonic or ROS 2 Jazzy -->
-        <!-- See https://robotics.stackexchange.com/questions/85506/how-to-do-mimic-joints-that-work-in-gazebo for more information -->
-        <xacro:if value="${gazebo_version == 'classic'}">
-          <param name="initial_value">0.07</param>
-        </xacro:if>
-        <xacro:if value="${gazebo_version == 'gazebo'}">
-          <param name="initial_value">0.0</param>
+        <xacro:if value="${sim_type == 'gazebo'}">
+          <!-- TODO: set initial_value back to 0.07938 when moving to Gazebo Harmonic or ROS 2 Jazzy -->
+          <!-- See https://robotics.stackexchange.com/questions/85506/how-to-do-mimic-joints-that-work-in-gazebo for more information -->
+          <xacro:if value="${gazebo_version == 'classic'}">
+            <param name="initial_value">0.07</param>
+          </xacro:if>
+          <xacro:if value="${gazebo_version == 'gazebo'}">
+            <param name="initial_value">0.0</param>
+          </xacro:if>
         </xacro:if>
       </state_interface>
       <state_interface name="velocity"/>
@@ -60,10 +62,8 @@ limitations under the License.
 
     <!-- Transmission only set to left finger joint, other joints are passive and mimic this
     joint-->
-    <xacro:if value="${sim_type not in ['mujoco', 'mujoco-ros2-control']}">
-      <xacro:include filename="$(find pal_pro_gripper_description)/urdf/gripper.transmission.xacro" />
-      <xacro:pal_pro_gripper_transmission name="${name}_finger"/>
-    </xacro:if>
+    <xacro:include filename="$(find pal_pro_gripper_description)/urdf/gripper.transmission.xacro" />
+    <xacro:pal_pro_gripper_transmission name="${name}_finger" sim_type="${sim_type}"/>
 
   </xacro:macro>
 </robot>

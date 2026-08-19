@@ -1,0 +1,18 @@
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Mimic Joints Multipliers -->
+  <xacro:property name="finger_right_joint_multiplier" value="0.22"/>
+  <xacro:property name="inner_finger_multiplier" value="-8.28"/>
+  <xacro:property name="outer_finger_multiplier" value="-8.28"/>
+  <xacro:property name="fingertip_multiplier" value="8.28"/>
+
+  <!-- Velocity limits -->
+  <xacro:property name="finger_max_vel" value="2.0" />
+
+  <!-- Joint limits -->
+  <xacro:property name="finger_lower_limit" value="0.0"/>
+  <xacro:property name="finger_upper_limit" value="0.07"/>
+  <xacro:property name="finger_mj_max_effort" value="8"/>
+
+
+</robot>

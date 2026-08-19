@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- 
+<!--
 Copyright (c) 2023 PAL Robotics S.L. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +17,19 @@ limitations under the License.
 
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:macro name="pal_pro_gripper_transmission" params="name">
+  <xacro:macro name="pal_pro_gripper_transmission" params="name sim_type:=^|gazebo">
     <transmission name="${name}_trans">
         <plugin>pal_pro_gripper_transmissions/PalGripperTransmission</plugin>
-        <actuator name="${name}_actuator" role="actuator1"/>
+
+        <xacro:if value="${sim_type == 'mujoco-ros2-control'}">
+          <actuator name="${name}_joint" role="actuator1"/>
+        </xacro:if>
+        <xacro:unless value="${sim_type == 'mujoco-ros2-control'}">
+          <actuator name="${name}_actuator" role="actuator1"/>
+        </xacro:unless>
+
         <joint name="${name}_joint" role="joint1">
-            <mechanical_reduction>0.001343799</mechanical_reduction>          
+            <mechanical_reduction>0.001343799</mechanical_reduction>
         </joint>
     </transmission>
   </xacro:macro>

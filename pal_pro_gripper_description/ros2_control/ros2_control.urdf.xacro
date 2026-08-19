@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- 
+<!--
   Copyright (c) 2023 PAL Robotics S.L. All rights reserved.
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
  -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="pal_pro_gripper">
 
-  <xacro:macro name="pal_pro_gripper_ros2_control" params="use_sim_time:=^|false sim_type:=no-simulation">
+  <xacro:macro name="pal_pro_gripper_ros2_control" params="use_sim_time:=^|false sim_type:=^|gazebo">
 
     <xacro:include filename="$(find pal_pro_gripper_description)/urdf/gripper.ros2_control.xacro" />
 
@@ -24,7 +24,9 @@
       <hardware>
         <xacro:if value="$(arg use_sim_time)">
           <xacro:if value="${sim_type == 'mujoco-ros2-control'}">
-            <plugin>mujoco_ros2_control/MujocoSystem</plugin>
+            <plugin>mujoco_ros2_control/MujocoSystemInterface</plugin>
+            <!-- Override the slowdown settings in the Simulate App and run at 3x speed -->
+            <param name="sim_speed_factor">1.0</param>
           </xacro:if>
           <xacro:if value="${sim_type == 'gazebo'}">
             <xacro:if value="${gazebo_version == 'classic'}">
@@ -41,7 +43,7 @@
       </hardware>
 
       <!-- pal-pro-gripper -->
-      <xacro:ros2_control_pal_pro_gripper name="gripper" reduction="1.0"  sim_type="${sim_type}"/>
+      <xacro:ros2_control_pal_pro_gripper name="gripper" reduction="1.0" sim_type="${sim_type}"/>
 
     </ros2_control>
   </xacro:macro>
