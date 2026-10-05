@@ -19,18 +19,20 @@ limitations under the License.
 
   <xacro:macro name="pal_pro_gripper_transmission" params="name sim_type:=^|gazebo">
     <transmission name="${name}_trans">
-        <plugin>pal_pro_gripper_transmissions/PalGripperTransmission</plugin>
-
         <xacro:if value="${sim_type == 'mujoco-ros2-control'}">
+          <plugin>transmission_interface/SimpleTransmission</plugin>
           <actuator name="${name}_joint" role="actuator1"/>
+          <joint name="${name}_joint" role="joint1">
+              <mechanical_reduction>1.0</mechanical_reduction>
+          </joint>
         </xacro:if>
         <xacro:unless value="${sim_type == 'mujoco-ros2-control'}">
+          <plugin>pal_pro_gripper_transmissions/PalGripperTransmission</plugin>
           <actuator name="${name}_actuator" role="actuator1"/>
+          <joint name="${name}_joint" role="joint1">
+              <mechanical_reduction>0.001343799</mechanical_reduction>
+          </joint>
         </xacro:unless>
-
-        <joint name="${name}_joint" role="joint1">
-            <mechanical_reduction>0.001343799</mechanical_reduction>
-        </joint>
     </transmission>
   </xacro:macro>
 
