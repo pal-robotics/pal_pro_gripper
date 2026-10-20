@@ -1,5 +1,6 @@
-from setuptools import find_packages, setup, glob
 import os
+
+from setuptools import find_packages, glob, setup
 package_name = 'pal_pro_gripper_wrapper'
 
 setup(

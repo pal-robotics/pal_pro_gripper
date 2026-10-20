@@ -13,17 +13,18 @@
 # limitations under the License.
 
 import rclpy
-from rclpy.duration import Duration
-from rclpy.node import Node
-from rclpy.executors import MultiThreadedExecutor
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from sensor_msgs.msg import JointState
-from std_srvs.srv import Empty
-from std_msgs.msg import Bool
 from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.duration import Duration
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.node import Node
+from sensor_msgs.msg import JointState
+from std_msgs.msg import Bool
+from std_srvs.srv import Empty
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 
 class GripperGrasper(Node):
+
     def __init__(self) -> None:
         super().__init__('gripper_grasper_srv',
                          automatically_declare_parameters_from_overrides=True)
@@ -31,7 +32,7 @@ class GripperGrasper(Node):
         # Init Params and Subscriptions - defaults
         self.init_params()
         self.init_subscriptions()
-        self.get_logger().info(f"{self.get_name()} initialized. Ready..")
+        self.get_logger().info(f'{self.get_name()} initialized. Ready..')
 
     def init_params(self) -> None:
         self.last_state = None
@@ -73,23 +74,23 @@ class GripperGrasper(Node):
         # Publisher on the gripper topic
         self.cmd_pub = self.create_publisher(
             JointTrajectory, f'/{self.controller_name}/joint_trajectory', 10)
-        self.get_logger().info(f"Publishing on topic: {self.cmd_pub.topic_name}")
+        self.get_logger().info(f'Publishing on topic: {self.cmd_pub.topic_name}')
 
         # Graspng srv to offer
         self.grasp_srv = self.create_service(
             Empty, f'/{self.get_name()}/grasp', self.grasp_cb, callback_group=self.cb_group)
-        self.get_logger().info(f"Offering grasp srv on: {self.grasp_srv.srv_name}")
+        self.get_logger().info(f'Offering grasp srv on: {self.grasp_srv.srv_name}')
 
         # Releasing srv to offer
         self.release_srv = self.create_service(
             Empty, f'/{self.get_name()}/release', self.open_cb)
-        self.get_logger().info(f"Offering release srv on: {self.release_srv.srv_name}")
+        self.get_logger().info(f'Offering release srv on: {self.release_srv.srv_name}')
 
         # Publish the grasp state each 'rate' secons to know if an object is grasped or not
         self.pub_grasp_state = self.create_publisher(Bool, f'{self.get_name()}/is_grasped', 10)
         self.pub_state_timer = self.create_timer(self.rate, self.publish_grasping_state)
         self.get_logger().info(
-            f"Publishing on topic: {self.pub_grasp_state.topic_name} each {self.rate} seconds.")
+            f'Publishing on topic: {self.pub_grasp_state.topic_name} each {self.rate} seconds.')
 
     def state_cb(self, msg: JointState) -> None:
         # check /joint_state msg structure
@@ -99,8 +100,8 @@ class GripperGrasper(Node):
                 idx = i
                 break
         if idx == -1:
-            self.get_logger().error(f"Gripper joint: {self.joint_names} not present in "
-                                    "/joint_states topic.")
+            self.get_logger().error(f'Gripper joint: {self.joint_names} not present in '
+                                    '/joint_states topic.')
             rclpy.shutdown()
 
         self.last_state = msg.position[idx]
@@ -111,7 +112,7 @@ class GripperGrasper(Node):
         self.pub_grasp_state.publish(self.is_grasped)
 
     def open_cb(self, req: Empty.Request, res: Empty.Response) -> Empty.Response:
-        self.get_logger().info("Recieved open request")
+        self.get_logger().info('Recieved open request')
 
         # In any case we open the gripper
         # Handle the case if the srv is called again after a successfull grasp
@@ -121,11 +122,11 @@ class GripperGrasper(Node):
             self.has_grasped_object = False
             self.is_open = True
 
-        self.get_logger().info("Gripper opened!\n")
+        self.get_logger().info('Gripper opened!\n')
         return res
 
     def grasp_cb(self, req: Empty.Request, res: Empty.Response) -> Empty.Response:
-        self.get_logger().info("Recieved grasp request")
+        self.get_logger().info('Recieved grasp request')
 
         # Keep closing the gripper until the error of the state reaches
         # max_position_error or any of the gripper joints (or timeout)
@@ -142,7 +143,7 @@ class GripperGrasper(Node):
         while rclpy.ok() and (self.get_clock().now()-init_time) < Duration(seconds=self.timeout):
 
             if self.last_state is None:
-                self.get_logger().warn("Waiting for gripper state...")
+                self.get_logger().warning('Waiting for gripper state...')
                 continue
 
             current_error = self.last_state - close_val[0]
@@ -156,7 +157,7 @@ class GripperGrasper(Node):
                 self.send_joint_traj(close_val, self.closing_time)
                 break
 
-        self.get_logger().info("Gripper closed!\n")
+        self.get_logger().info('Gripper closed!\n')
         return res
 
     # Get optimal value to close the gripper to not let the joint stress in case of grasp
@@ -164,7 +165,7 @@ class GripperGrasper(Node):
         optimal_close = self.last_state
         # range: [close_value, open_value]
         optimal_close = max(min(self.open_value[0], optimal_close), self.close_value[0])
-        self.get_logger().info(f"Optimal close: {optimal_close}")
+        self.get_logger().info(f'Optimal close: {optimal_close}')
         return [optimal_close]
 
     def send_joint_traj(self, j_positions: list[float], exec_time: float) -> None:
@@ -175,7 +176,7 @@ class GripperGrasper(Node):
         p.time_from_start = Duration(seconds=exec_time).to_msg()
         jt.points.append(p)
 
-        self.get_logger().info("Sending: " + str(j_positions[0]))
+        self.get_logger().info('Sending: ' + str(j_positions[0]))
         self.cmd_pub.publish(jt)
         return
 

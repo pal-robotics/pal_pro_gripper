@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
 import os
 from pathlib import Path
-from dataclasses import dataclass
 
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, SetLaunchConfiguration
-from launch_pal.arg_utils import LaunchArgumentsBase, read_launch_argument
 from launch.substitutions import LaunchConfiguration
+from launch_pal.arg_utils import LaunchArgumentsBase, read_launch_argument
 from launch_pal.robot_arguments import CommonArgs
 from launch_param_builder import load_xacro
 from launch_ros.actions import Node
@@ -46,7 +46,7 @@ def declare_actions(launch_description: LaunchDescription, launch_args: LaunchAr
                executable='robot_state_publisher',
                output='both',
                parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time'),
-                            "robot_description": LaunchConfiguration('robot_description')}])
+                            'robot_description': LaunchConfiguration('robot_description')}])
 
     launch_description.add_action(rsp)
 

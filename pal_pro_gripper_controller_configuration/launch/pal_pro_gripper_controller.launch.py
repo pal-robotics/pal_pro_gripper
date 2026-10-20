@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
 import os
 
-from dataclasses import dataclass
 
 from ament_index_python.packages import get_package_share_directory
 from controller_manager.launch_utils import generate_load_controller_launch_description
-from launch_pal.param_utils import parse_parametric_yaml
-from launch_pal.arg_utils import LaunchArgumentsBase, read_launch_argument
-from launch.actions import DeclareLaunchArgument, SetLaunchConfiguration, OpaqueFunction
+from launch import LaunchContext, LaunchDescription
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, SetLaunchConfiguration
 from launch.substitutions import LaunchConfiguration
-from launch import LaunchDescription, LaunchContext
+from launch_pal.arg_utils import LaunchArgumentsBase, read_launch_argument
+from launch_pal.param_utils import parse_parametric_yaml
 
 
 @dataclass(frozen=True)
@@ -38,8 +38,8 @@ def declare_actions(launch_description: LaunchDescription, launch_args: LaunchAr
     launch_description.add_action(OpaqueFunction(function=setup_controller_configuration))
 
     launch_controller = generate_load_controller_launch_description(
-        controller_name=LaunchConfiguration("controller_name"),
-        controller_params_file=LaunchConfiguration("controller_config"))
+        controller_name=LaunchConfiguration('controller_name'),
+        controller_params_file=LaunchConfiguration('controller_config'))
     launch_description.add_action(launch_controller)
 
     return
@@ -48,12 +48,12 @@ def declare_actions(launch_description: LaunchDescription, launch_args: LaunchAr
 def setup_controller_configuration(context: LaunchContext):
 
     side = read_launch_argument('side', context)
-    ee_prefix = "gripper"
+    ee_prefix = 'gripper'
     if side:
-        ee_prefix = f"gripper_{side}"
+        ee_prefix = f'gripper_{side}'
 
-    controller_name = f"{ee_prefix}_controller"
-    remappings = {"EE_SIDE_PREFIX": ee_prefix}
+    controller_name = f'{ee_prefix}_controller'
+    remappings = {'EE_SIDE_PREFIX': ee_prefix}
     param_file = os.path.join(
         get_package_share_directory('pal_pro_gripper_controller_configuration'),
         'config', 'gripper_controller.yaml')
