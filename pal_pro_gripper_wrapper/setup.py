@@ -1,5 +1,6 @@
-from setuptools import find_packages, setup, glob
 import os
+
+from setuptools import find_packages, glob, setup
 package_name = 'pal_pro_gripper_wrapper'
 
 setup(
@@ -20,7 +21,7 @@ setup(
     license='Apache License, Version 2.0',
     description='Grasp controller to close with a determined error on position only\
     so to skip overheating.',
-    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
             'gripper_grasper_srv = pal_pro_gripper_wrapper.gripper_grasper_srv:main'

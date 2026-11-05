@@ -12,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 
-from launch_ros.actions import Node
-from dataclasses import dataclass
 from launch_pal.arg_utils import LaunchArgumentsBase
+from launch_ros.actions import Node
 
 
 @dataclass(frozen=True)
 class LaunchArguments(LaunchArgumentsBase):
     robot_name:  DeclareLaunchArgument = DeclareLaunchArgument(
         name='robot_name',
-        default_value="pal_pro_gripper",
+        default_value='pal_pro_gripper',
         description='Gazebo model name'
     )
 

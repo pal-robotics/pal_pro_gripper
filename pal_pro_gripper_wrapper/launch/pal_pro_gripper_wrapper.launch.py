@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 from dataclasses import dataclass
+import os
 
 from ament_index_python.packages import get_package_share_directory
-from launch_pal.param_utils import parse_parametric_yaml
-from launch_pal.arg_utils import LaunchArgumentsBase
-from launch_pal.robot_arguments import CommonArgs
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
-from launch.actions import OpaqueFunction
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.actions import OpaqueFunction
+from launch.substitutions import LaunchConfiguration
+from launch_pal.arg_utils import LaunchArgumentsBase
+from launch_pal.param_utils import parse_parametric_yaml
+from launch_pal.robot_arguments import CommonArgs
 from launch_ros.actions import Node
 
 
@@ -35,11 +35,11 @@ class LaunchArguments(LaunchArgumentsBase):
 def declare_actions(context, *args, **kwargs):
 
     side = LaunchConfiguration('side').perform(context)
-    ee_prefix = "gripper"
+    ee_prefix = 'gripper'
     if side:
-        ee_prefix = f"gripper_{side}"
+        ee_prefix = f'gripper_{side}'
 
-    remappings = {"EE_SIDE_PREFIX": ee_prefix}
+    remappings = {'EE_SIDE_PREFIX': ee_prefix}
     grasp_check_params = os.path.join(
         get_package_share_directory('pal_pro_gripper_wrapper'),
         'config', 'gripper.yaml')
