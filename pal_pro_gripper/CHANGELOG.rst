@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.12.7 (2026-11-05)
+-------------------
 * Bump cmake_minimum_required to 3.10
 * Contributors: matteovillani
 
