@@ -2,6 +2,12 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Linting, flake8 and deprecated API changeover
+* Bump cmake_minimum_required to 3.10
+* Contributors: matteovillani
+
 1.12.6 (2026-08-19)
 -------------------
 * Merge branch 'opo/mujoco-sim' into 'humble-devel'

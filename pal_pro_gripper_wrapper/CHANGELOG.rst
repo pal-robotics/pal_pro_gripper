@@ -2,6 +2,12 @@
 Changelog for package pal_pro_gripper_wrapper
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Linting, flake8 and deprecated API changeover
+* Use extras_require instead of tests_require
+* Contributors: matteovillani
+
 1.12.6 (2026-08-19)
 -------------------
 
