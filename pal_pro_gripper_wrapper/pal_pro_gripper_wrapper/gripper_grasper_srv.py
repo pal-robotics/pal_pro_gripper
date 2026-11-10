@@ -112,24 +112,43 @@ class OverCurrent:
 class HoldGuard:
     """While holding, back off from what the finger pushes on while the current is too high."""
 
-    def __init__(self, position, push, over_current, step, max_backoff, low, high):
+    def __init__(self, position, push, over_current, step, max_backoff, low, high, settle=0.0):
         self.position = position
         self._push = math.copysign(1.0, push) if push else 0.0  # direction it pushes in
         self._over = over_current
         self._step = step
         self._max_backoff = max_backoff
         self._low, self._high = low, high
+        self._settle = settle        # s at a hold before its current counts
+        self._applied_since = None   # when the controller reached the hold
         self.backoff = 0.0
 
     @property
     def exhausted(self):
         return self.backoff + self._step > self._max_backoff + 1e-12
 
-    def update(self, t, current):
-        """Return a new hold position to send, or None to keep the current one."""
+    def update(self, t, current, reference):
+        """
+        Return a new hold position to send, or None to keep the current one.
+
+        `reference` is the controller's commanded position: until it reaches the last hold sent
+        (commands can arrive late), and for `settle` s after (the drive unwinds the current it
+        built up before), the current is not judged. So only a lasting over-current backs off,
+        once per step.
+        """
+        if abs(reference - self.position) > 1e-6:
+            self._over.reset()
+            self._applied_since = None
+            return None
+        if self._applied_since is None:
+            self._applied_since = t
+        if t - self._applied_since < self._settle:
+            self._over.reset()
+            return None
         if not self._push or not self._over.update(t, current) or self.exhausted:
             return None
         self._over.reset()  # the next step needs current_time over the limit again
+        self._applied_since = None
         self.backoff += self._step
         self.position = min(max(self.position - self._push * self._step, self._low), self._high)
         return self.position
@@ -223,11 +242,14 @@ class GripperGrasper(Node):
         self.current_time = float(param('current_time', 0.05))
         self.backoff_step = float(param('backoff_step', 0.0005))
         self.max_backoff = float(param('max_backoff', 0.005))
+        self.hold_settle = float(param('hold_settle', 1.0))
+        self.release_current_time = float(param('release_current_time', 0.2))
 
         self.has_grasped_object = False
         self._state = None    # (receive time [s], reference, feedback) of the finger joint
         self._current = None  # (receive time [s], current [A])
         self._guard = None    # HoldGuard of the position held now
+        self._holding = None  # where the grasped object stopped the finger
         self._lock = threading.Lock()  # one move at a time
 
         group = ReentrantCallbackGroup()
@@ -303,8 +325,13 @@ class GripperGrasper(Node):
     def open_cb(self, _req: Empty.Request, res: Empty.Response) -> Empty.Response:
         self.get_logger().info('Received release request')
         with self._lock:
-            outcome, stop = self.move(self.open_value, self.opening_time, squeeze=0.0)
+            # No stall detection: out of a grasp the drive first unwinds its closing current
+            # (~0.3 s) and commands can arrive late, so a still finger is not a blocked one.
+            # Stops at the target, on over-current or at the timeout.
+            outcome, stop = self.move(self.open_value, self.opening_time, squeeze=0.0,
+                                      stall=False, current_time=self.release_current_time)
             self.has_grasped_object = False
+            self._holding = None
             self.publish_grasping_state()
         if outcome == BLOCKED:
             self.get_logger().warn(f'Opening blocked at {stop:.4f} before {self.open_value:.4f}'
@@ -315,20 +342,31 @@ class GripperGrasper(Node):
     def grasp_cb(self, _req: Empty.Request, res: Empty.Response) -> Empty.Response:
         self.get_logger().info('Received grasp request')
         with self._lock:
+            state = self._state
+            if (self._holding is not None and state is not None
+                    and abs(state[2] - self._holding) < self.empty_tolerance):
+                self.get_logger().info(f'Already holding an object at {state[2]:.4f}: '
+                                       'not closing again')
+                self.publish_grasping_state()
+                return res
             outcome, stop = self.move(self.close_value, self.closing_time, self.grasp_squeeze)
             self.has_grasped_object = (
                 stop is not None and abs(stop - self.close_value) > self.empty_tolerance)
+            self._holding = stop if self.has_grasped_object else None
             self.publish_grasping_state()
         where = '' if stop is None else f' at {stop:.4f}'
         self.get_logger().info(f'Grasp: {outcome}{where}, '
                                f'{"object grasped" if self.has_grasped_object else "nothing"}')
         return res
 
-    def move(self, target: float, duration: float, squeeze: float):
+    def move(self, target: float, duration: float, squeeze: float, stall: bool = True,
+             current_time: float | None = None):
         """
         Move the finger to `target`; if blocked, hold `squeeze` past where it stopped.
 
-        Return (REACHED | BLOCKED | TIMEOUT | NO_STATE, position where it stopped or None).
+        Blocked: on over-current for `current_time` s (default the parameter), or (with `stall`)
+        when the finger lags still. Return
+        (REACHED | BLOCKED | TIMEOUT | NO_STATE, position where it stopped or None).
         """
         self._guard = None
         start = self.now()
@@ -342,9 +380,11 @@ class GripperGrasper(Node):
         self.send_joint_traj(target, duration)
         monitor = FingerMonitor(target, self.max_position_error, self.stall_motion,
                                 self.stall_time, self.reach_tolerance)
-        over = OverCurrent(self.max_current, self.current_time)
+        over = OverCurrent(self.max_current,
+                           self.current_time if current_time is None else current_time)
         deadline = start + duration + self.timeout
         last = None
+        first_reference, followed = self._state[1], False
         while rclpy.ok():
             time.sleep(self.period)
             stamp, reference, feedback = self._state
@@ -355,7 +395,12 @@ class GripperGrasper(Node):
                     return NO_STATE, self._state[2]
                 continue
             last = stamp
+            if not followed and abs(reference - first_reference) > 1e-5:
+                followed = True
+                self.log_lag(stamp - start)
             outcome = monitor.update(stamp, reference, feedback)
+            if outcome == BLOCKED and not stall:
+                outcome = None
             current = self.current_now()
             if current is not None and over.update(stamp, current):
                 outcome, squeeze = BLOCKED, 0.0  # already pushing hard: no extra squeeze
@@ -372,21 +417,32 @@ class GripperGrasper(Node):
                 return (BLOCKED if outcome == BLOCKED else TIMEOUT), feedback
         return TIMEOUT, None
 
+    def log_lag(self, lag: float) -> None:
+        """Report how late the controller started following the command just sent."""
+        if lag > 0.2:
+            self.get_logger().warn(
+                f'{self.controller_name} followed the command {lag:.2f} s late: meanwhile the '
+                'finger keeps going (wrapper on another machine than the controllers? '
+                'controller manager overloaded?)')
+        else:
+            self.get_logger().info(f'{self.controller_name} followed after {lag:.2f} s')
+
     def hold(self, position: float, push: float) -> None:
         """Watch the current while holding `position`, pushing in the direction of `push`."""
         if self._current_lookup is not None:
             self._guard = HoldGuard(position, push, OverCurrent(self.max_current,
                                                                 self.current_time),
-                                    self.backoff_step, self.max_backoff, self.low, self.high)
+                                    self.backoff_step, self.max_backoff, self.low, self.high,
+                                    settle=self.hold_settle)
 
     def guard_cb(self) -> None:
         if not self._lock.acquire(blocking=False):  # a move is running: it watches the current
             return
         try:
-            guard, current = self._guard, self.current_now()
-            if guard is None or current is None:
+            guard, current, state = self._guard, self.current_now(), self._state
+            if guard is None or current is None or state is None:
                 return
-            position = guard.update(self.now(), current)
+            position = guard.update(self.now(), current, state[1])
             if position is not None:
                 self.send_joint_traj(position, self.hold_time)
                 self.get_logger().warn(f'Current {current:.2f} A > {self.max_current} A: '
