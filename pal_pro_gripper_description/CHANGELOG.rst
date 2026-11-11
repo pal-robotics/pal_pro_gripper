@@ -2,6 +2,11 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* adapt transmission to the new updates in mj-ros2-control
+* Contributors: Ortisa Poci
+
 1.12.7 (2026-11-05)
 -------------------
 * Linting, flake8 and deprecated API changeover

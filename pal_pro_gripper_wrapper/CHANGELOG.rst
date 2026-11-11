@@ -2,6 +2,17 @@
 Changelog for package pal_pro_gripper_wrapper
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Revert "make a current control"
+  This reverts commit 371b97efb847bed0da37f5d7ed2372a610f43f43.
+* Revert "tune values, allow until +-3A"
+  This reverts commit 48700e639d8eda3d97f6b10fadd6cf28d6f9bbed.
+* Fix flake8 import order in wrapper tests
+* tune values, allow until +-3A
+* make a current control
+* Contributors: matteovillani, michelacavuoto
+
 1.12.7 (2026-11-05)
 -------------------
 * Linting, flake8 and deprecated API changeover

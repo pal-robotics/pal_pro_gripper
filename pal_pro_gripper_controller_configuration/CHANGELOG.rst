@@ -2,6 +2,9 @@
 Changelog for package pal_pro_gripper_controller_configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.12.7 (2026-11-05)
 -------------------
 * Linting, flake8 and deprecated API changeover
