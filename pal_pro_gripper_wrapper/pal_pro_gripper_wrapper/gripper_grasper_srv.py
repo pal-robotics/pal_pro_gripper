@@ -11,194 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Grasp and release the PAL Pro gripper without leaving the finger pushing on something.
 
-Srv: /<node>/grasp    std_srvs/Empty: close until the finger is blocked (an object, or fully
-                      closed), then hold `grasp_squeeze` further closed than where it stopped
-     /<node>/release  std_srvs/Empty: open; if blocked on the way, hold where it stopped
-Pub: <node>/is_grasped  std_msgs/Bool at `rate` Hz and after every grasp/release
-In:  /<controller>/controller_state  control_msgs/JointTrajectoryControllerState
-     <current_topic> (+ its /names)  pal_statistics_msgs/StatisticsValues: the motor current
-Out: /<controller>/joint_trajectory  trajectory_msgs/JointTrajectory
-
-Why: the trajectory controller drives the finger to the commanded position. If something stops
-it (an object, or a target past the mechanical stop) the error stays, the actuator keeps pushing
-(current up, it overheats) and, goal_time after the end of the trajectory with the error above the
-goal tolerance, the controller gives up ("Exceeded goal_time_tolerance: holding position...").
-
-Blocked: the finger lags the commanded (reference) position by more than `max_position_error`
-while it moved less than `stall_motion` in the last `stall_time` s, or |current| has been above
-`max_current` for `current_time` s. Then a new goal holds it there.
-Current limit while holding: |current| above `max_current` for `current_time` s backs the hold
-position off by `backoff_step` from what the finger pushes on, up to `max_backoff` in total.
-Without current data (empty `current_statistic`, or no topic, e.g. in simulation) only the
-position is used.
-"""
-
-from collections import deque
-import math
-import re
-import threading
-import time
-from typing import Any
-
-from control_msgs.msg import JointTrajectoryControllerState
-from pal_statistics_msgs.msg import StatisticsNames, StatisticsValues
 import rclpy
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.duration import Duration
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
-from rclpy.parameter import Parameter
-from rclpy.qos import DurabilityPolicy, qos_profile_sensor_data, QoSProfile, ReliabilityPolicy
+from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool
 from std_srvs.srv import Empty
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-
-REACHED, BLOCKED, TIMEOUT, NO_STATE = 'reached', 'blocked', 'timeout', 'no controller state'
-# How pal_statistics publishes <topic>/names (latched); the values are best effort
-STATISTICS_NAMES_QOS = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
-                                  reliability=ReliabilityPolicy.RELIABLE)
-
-
-class FingerMonitor:
-    """Tell when a move of the finger is over: it REACHED the target or got BLOCKED before it."""
-
-    def __init__(self, target, max_position_error, stall_motion, stall_time, reach_tolerance):
-        self.target = target
-        self._max_error = max_position_error
-        self._stall_motion = stall_motion
-        self._stall_time = stall_time
-        self._reach_tolerance = reach_tolerance
-        self._history = deque()  # (t, feedback) covering the last stall_time s
-
-    def update(self, t, reference, feedback):
-        """Return None while moving, REACHED or BLOCKED once the move is over."""
-        if (abs(reference - self.target) <= self._reach_tolerance
-                and abs(feedback - self.target) <= self._reach_tolerance):
-            return REACHED
-        self._history.append((t, feedback))
-        while len(self._history) > 1 and self._history[1][0] <= t - self._stall_time:
-            self._history.popleft()
-        window = [f for _, f in self._history]
-        stalled = (self._history[0][0] <= t - self._stall_time
-                   and max(window) - min(window) < self._stall_motion)
-        if stalled and abs(reference - feedback) > self._max_error:
-            return BLOCKED
-        return None
-
-
-class OverCurrent:
-    """Tell when |current| has stayed above max_current for over_time s."""
-
-    def __init__(self, max_current, over_time):
-        self.max_current = max_current
-        self._over_time = over_time
-        self._since = None
-
-    def reset(self):
-        self._since = None
-
-    def update(self, t, current):
-        if abs(current) <= self.max_current:
-            self._since = None
-            return False
-        if self._since is None:
-            self._since = t
-        return t - self._since >= self._over_time
-
-
-class HoldGuard:
-    """While holding, back off from what the finger pushes on while the current is too high."""
-
-    def __init__(self, position, push, over_current, step, max_backoff, low, high, settle=0.0):
-        self.position = position
-        self._push = math.copysign(1.0, push) if push else 0.0  # direction it pushes in
-        self._over = over_current
-        self._step = step
-        self._max_backoff = max_backoff
-        self._low, self._high = low, high
-        self._settle = settle        # s at a hold before its current counts
-        self._applied_since = None   # when the controller reached the hold
-        self.backoff = 0.0
-
-    @property
-    def exhausted(self):
-        return self.backoff + self._step > self._max_backoff + 1e-12
-
-    def update(self, t, current, reference):
-        """
-        Return a new hold position to send, or None to keep the current one.
-
-        `reference` is the controller's commanded position: until it reaches the last hold sent
-        (commands can arrive late), and for `settle` s after (the drive unwinds the current it
-        built up before), the current is not judged. So only a lasting over-current backs off,
-        once per step.
-        """
-        if abs(reference - self.position) > 1e-6:
-            self._over.reset()
-            self._applied_since = None
-            return None
-        if self._applied_since is None:
-            self._applied_since = t
-        if t - self._applied_since < self._settle:
-            self._over.reset()
-            return None
-        if not self._push or not self._over.update(t, current) or self.exhausted:
-            return None
-        self._over.reset()  # the next step needs current_time over the limit again
-        self._applied_since = None
-        self.backoff += self._step
-        self.position = min(max(self.position - self._push * self._step, self._low), self._high)
-        return self.position
-
-
-class StatisticLookup:
-    """One pal_statistics value, found by a regular expression that matches one name."""
-
-    def __init__(self, pattern):
-        self.pattern = re.compile(pattern, re.IGNORECASE)
-        self.version = None
-        self.name = None
-        self._index = None
-        self.problem = 'no names received yet'
-
-    def set_names(self, msg):
-        self.version = msg.names_version
-        matches = [i for i, name in enumerate(msg.names) if self.pattern.search(name)]
-        if len(matches) == 1:
-            self._index, self.name = matches[0], msg.names[matches[0]]
-            return
-        self._index = self.name = None
-        found = [msg.names[i] for i in matches] or [
-            n for n in msg.names if 'current' in n.lower()]
-        self.problem = (f"'{self.pattern.pattern}' matches {len(matches)} of the names (version "
-                        f'{self.version}), it must match one. Candidates: {found[:10]}')
-
-    def value(self, msg):
-        """Return the value in a StatisticsValues `msg`; LookupError if it can't."""
-        if self._index is None:
-            raise LookupError(self.problem)
-        if msg.names_version != self.version:
-            raise LookupError(f'values have names_version {msg.names_version}, names '
-                              f'{self.version}')
-        return float(msg.values[self._index])
-
-
-def move_duration(distance, min_time, max_speed):
-    """Return the time for a move: at least min_time, and no faster than max_speed (if > 0)."""
-    return max(min_time, abs(distance) / max_speed) if max_speed > 0 else min_time
-
-
-def hold_position(stop, target, squeeze, low, high):
-    """
-    Return where to hold a finger blocked at `stop` on its way to `target`.
-
-    That is `squeeze` further toward the target (never past it), within [low, high].
-    """
-    step = min(squeeze, abs(target - stop))
-    return min(max(stop + math.copysign(step, target - stop), low), high)
 
 
 class GripperGrasper(Node):
@@ -207,273 +29,165 @@ class GripperGrasper(Node):
         super().__init__('gripper_grasper_srv',
                          automatically_declare_parameters_from_overrides=True)
 
-        def param(name, default=None) -> Any:
-            """Return parameter `name`: required (no default) or `default` when not set."""
-            if default is None:
-                value = self.get_parameter(name).value
-            else:
-                value = self.get_parameter_or(name, Parameter(name, value=default)).value
-            if value is None:
-                raise ValueError(f"Parameter '{name}' is not set")
-            return value
+        # Init Params and Subscriptions - defaults
+        self.init_params()
+        self.init_subscriptions()
+        self.get_logger().info(f'{self.get_name()} initialized. Ready..')
 
-        self.controller_name = param('controller_name')
-        self.joint_names = list(param('joint_names'))
-        if len(self.joint_names) != 1:
-            raise ValueError(f'One actuated finger joint expected, not {self.joint_names}')
-        self.open_value = float(param('open_value')[0])
-        self.close_value = float(param('close_value')[0])
-        self.opening_time = float(param('opening_time'))
-        self.closing_time = float(param('closing_time'))
-        self.timeout = float(param('timeout'))   # s after the move's time to give up
-        self.max_speed = float(param('max_speed', 0.03))  # joint units/s, 0: no limit
-        self.max_position_error = float(param('max_position_error'))
-        self.stall_motion = float(param('stall_motion', 0.0005))
-        self.stall_time = float(param('stall_time', 0.1))
-        self.grasp_squeeze = float(param('grasp_squeeze', 0.002))
-        self.empty_tolerance = float(param('empty_tolerance', 0.003))
-        self.reach_tolerance = float(param('reach_tolerance', 0.001))
-        self.hold_time = float(param('hold_time', 0.2))
-        self.period = 1.0 / float(param('monitor_rate', 100.0))
-        self.low, self.high = sorted((self.open_value, self.close_value))
-        current_topic = param('current_topic', '/actuators_statistics/values')
-        current_statistic = param('current_statistic', '')
-        self.max_current = float(param('max_current', 2.0))
-        self.current_time = float(param('current_time', 0.05))
-        self.backoff_step = float(param('backoff_step', 0.0005))
-        self.max_backoff = float(param('max_backoff', 0.005))
-        self.hold_settle = float(param('hold_settle', 1.0))
-        self.release_current_time = float(param('release_current_time', 0.2))
+    def init_params(self) -> None:
+        self.last_state = None
+        self.controller_name = self.get_parameter(
+            'controller_name').get_parameter_value().string_value
+        self.joint_names = self.get_parameter(
+            'joint_names').get_parameter_value().string_array_value
+        self.max_position_error = self.get_parameter(
+            'max_position_error').get_parameter_value().double_value
+        self.timeout = self.get_parameter(
+            'timeout').get_parameter_value().double_value
+        self.opening_time = self.get_parameter(
+            'opening_time').get_parameter_value().double_value
+        self.closing_time = self.get_parameter(
+            'closing_time').get_parameter_value().double_value
+        self.open_value = self.get_parameter(
+            'open_value').get_parameter_value().double_array_value
+        self.close_value = self.get_parameter(
+            'close_value').get_parameter_value().double_array_value
+        self.rate = self.get_parameter('rate').get_parameter_value().double_value
+        self.is_grasped = Bool()
+        self.is_grasped.data = False
 
+        # Define if the gripper grasping without stressing the joint
+        # applying the 'optimal_close' joint value
         self.has_grasped_object = False
-        self._state = None    # (receive time [s], reference, feedback) of the finger joint
-        self._current = None  # (receive time [s], current [A])
-        self._guard = None    # HoldGuard of the position held now
-        self._holding = None  # where the grasped object stopped the finger
-        self._lock = threading.Lock()  # one move at a time
+        # True when it's open, False otherwise
+        self.is_open = False
 
-        group = ReentrantCallbackGroup()
-        self.state_topic = f'/{self.controller_name}/controller_state'
-        self.create_subscription(JointTrajectoryControllerState, self.state_topic,
-                                 self.state_cb, qos_profile_sensor_data, callback_group=group)
-        self._current_lookup = None
-        if current_statistic:
-            if not current_topic.endswith('/values'):
-                raise ValueError(f"current_topic must end in '/values', not '{current_topic}'")
-            self.current_topic = current_topic
-            lookup = self._current_lookup = StatisticLookup(current_statistic)
+    def init_subscriptions(self) -> None:
 
-            def on_names(msg: StatisticsNames) -> None:
-                self.current_names_cb(lookup, msg)
+        # Used to let the cb in the group to run concurrently
+        self.cb_group = ReentrantCallbackGroup()
 
-            def on_values(msg: StatisticsValues) -> None:
-                self.current_cb(lookup, msg)
-
-            self.create_subscription(StatisticsNames, current_topic[:-len('values')] + 'names',
-                                     on_names, STATISTICS_NAMES_QOS, callback_group=group)
-            self.create_subscription(StatisticsValues, current_topic, on_values,
-                                     qos_profile_sensor_data, callback_group=group)
-            self.create_timer(0.05, self.guard_cb, callback_group=group)
+        # Subs to gripper state
+        self.state_sub = self.create_subscription(
+            JointState, '/joint_states',
+            self.state_cb, qos_profile=1, callback_group=self.cb_group)
+        # Publisher on the gripper topic
         self.cmd_pub = self.create_publisher(
             JointTrajectory, f'/{self.controller_name}/joint_trajectory', 10)
+        self.get_logger().info(f'Publishing on topic: {self.cmd_pub.topic_name}')
+
+        # Graspng srv to offer
         self.grasp_srv = self.create_service(
-            Empty, f'/{self.get_name()}/grasp', self.grasp_cb, callback_group=group)
+            Empty, f'/{self.get_name()}/grasp', self.grasp_cb, callback_group=self.cb_group)
+        self.get_logger().info(f'Offering grasp srv on: {self.grasp_srv.srv_name}')
+
+        # Releasing srv to offer
         self.release_srv = self.create_service(
-            Empty, f'/{self.get_name()}/release', self.open_cb, callback_group=group)
+            Empty, f'/{self.get_name()}/release', self.open_cb)
+        self.get_logger().info(f'Offering release srv on: {self.release_srv.srv_name}')
+
+        # Publish the grasp state each 'rate' secons to know if an object is grasped or not
         self.pub_grasp_state = self.create_publisher(Bool, f'{self.get_name()}/is_grasped', 10)
-        self.create_timer(1.0 / float(param('rate')), self.publish_grasping_state)
-        limit = (f'current limit {self.max_current} A ({current_topic} ~ '
-                 f"'{current_statistic}')" if current_statistic else 'no current limit')
+        self.pub_state_timer = self.create_timer(self.rate, self.publish_grasping_state)
         self.get_logger().info(
-            f'Ready: {self.grasp_srv.srv_name}, {self.release_srv.srv_name} '
-            f'({self.state_topic} -> {self.cmd_pub.topic_name}), {limit}')
+            f'Publishing on topic: {self.pub_grasp_state.topic_name} each {self.rate} seconds.')
 
-    def now(self) -> float:
-        return self.get_clock().now().nanoseconds * 1e-9
+    def state_cb(self, msg: JointState) -> None:
+        # check /joint_state msg structure
+        idx = -1
+        for i, name in enumerate(msg.name):
+            if name in self.joint_names:
+                idx = i
+                break
+        if idx == -1:
+            self.get_logger().error(f'Gripper joint: {self.joint_names} not present in '
+                                    '/joint_states topic.')
+            rclpy.shutdown()
 
-    def state_cb(self, msg: JointTrajectoryControllerState) -> None:
-        try:
-            i = list(msg.joint_names).index(self.joint_names[0])
-            self._state = (self.now(), msg.reference.positions[i], msg.feedback.positions[i])
-        except (ValueError, IndexError):
-            self.get_logger().warn(f'No {self.joint_names[0]} position in {self.state_topic}',
-                                   throttle_duration_sec=5.0)
-
-    def current_names_cb(self, lookup: StatisticLookup, msg: StatisticsNames) -> None:
-        lookup.set_names(msg)
-        if lookup.name is None:
-            self.get_logger().error(f'No current: {lookup.problem}')
-        else:
-            self.get_logger().info(f"Current from '{lookup.name}'")
-
-    def current_cb(self, lookup: StatisticLookup, msg: StatisticsValues) -> None:
-        try:
-            self._current = (self.now(), abs(lookup.value(msg)))
-        except (LookupError, IndexError) as error:
-            self.get_logger().warn(f'No current: {error}', throttle_duration_sec=5.0)
-
-    def current_now(self):
-        """Return the latest |current| [A], or None without recent data."""
-        current = self._current
-        if current is None or self.now() - current[0] > 0.5:
-            return None
-        return current[1]
+        self.last_state = msg.position[idx]
 
     def publish_grasping_state(self) -> None:
-        self.pub_grasp_state.publish(Bool(data=self.has_grasped_object))
+        self.is_grasped.data = self.has_grasped_object
+        # Publishing state
+        self.pub_grasp_state.publish(self.is_grasped)
 
-    def open_cb(self, _req: Empty.Request, res: Empty.Response) -> Empty.Response:
-        self.get_logger().info('Received release request')
-        with self._lock:
-            # No stall detection: out of a grasp the drive first unwinds its closing current
-            # (~0.3 s) and commands can arrive late, so a still finger is not a blocked one.
-            # Stops at the target, on over-current or at the timeout.
-            outcome, stop = self.move(self.open_value, self.opening_time, squeeze=0.0,
-                                      stall=False, current_time=self.release_current_time)
+    def open_cb(self, req: Empty.Request, res: Empty.Response) -> Empty.Response:
+        self.get_logger().info('Recieved open request')
+
+        # In any case we open the gripper
+        # Handle the case if the srv is called again after a successfull grasp
+        if not self.is_open:
+            self.send_joint_traj(self.open_value, self.opening_time)
+            self.get_clock().sleep_for(Duration(seconds=self.opening_time))
             self.has_grasped_object = False
-            self._holding = None
-            self.publish_grasping_state()
-        if outcome == BLOCKED:
-            self.get_logger().warn(f'Opening blocked at {stop:.4f} before {self.open_value:.4f}'
-                                   ' (obstacle or mechanical stop): holding there')
-        self.get_logger().info(f'Release: {outcome}')
+            self.is_open = True
+
+        self.get_logger().info('Gripper opened!\n')
         return res
 
-    def grasp_cb(self, _req: Empty.Request, res: Empty.Response) -> Empty.Response:
-        self.get_logger().info('Received grasp request')
-        with self._lock:
-            state = self._state
-            if (self._holding is not None and state is not None
-                    and abs(state[2] - self._holding) < self.empty_tolerance):
-                self.get_logger().info(f'Already holding an object at {state[2]:.4f}: '
-                                       'not closing again')
-                self.publish_grasping_state()
-                return res
-            outcome, stop = self.move(self.close_value, self.closing_time, self.grasp_squeeze)
-            self.has_grasped_object = (
-                stop is not None and abs(stop - self.close_value) > self.empty_tolerance)
-            self._holding = stop if self.has_grasped_object else None
-            self.publish_grasping_state()
-        where = '' if stop is None else f' at {stop:.4f}'
-        self.get_logger().info(f'Grasp: {outcome}{where}, '
-                               f'{"object grasped" if self.has_grasped_object else "nothing"}')
-        return res
+    def grasp_cb(self, req: Empty.Request, res: Empty.Response) -> Empty.Response:
+        self.get_logger().info('Recieved grasp request')
 
-    def move(self, target: float, duration: float, squeeze: float, stall: bool = True,
-             current_time: float | None = None):
-        """
-        Move the finger to `target`; if blocked, hold `squeeze` past where it stopped.
+        # Keep closing the gripper until the error of the state reaches
+        # max_position_error or any of the gripper joints (or timeout)
+        init_time = self.get_clock().now()
+        close_val = self.close_value
 
-        Blocked: on over-current for `current_time` s (default the parameter), or (with `stall`)
-        when the finger lags still. Return
-        (REACHED | BLOCKED | TIMEOUT | NO_STATE, position where it stopped or None).
-        """
-        self._guard = None
-        start = self.now()
-        if self._state is None or start - self._state[0] > 0.5:
-            self.get_logger().error(f'No recent {self.state_topic}: not moving')
-            return NO_STATE, None
-        if self._current_lookup is not None and self.current_now() is None:
-            self.get_logger().warn(f'No current from {self.current_topic}: position only')
-        origin = self._state[2]
-        duration = move_duration(target - origin, duration, self.max_speed)
-        self.send_joint_traj(target, duration)
-        monitor = FingerMonitor(target, self.max_position_error, self.stall_motion,
-                                self.stall_time, self.reach_tolerance)
-        over = OverCurrent(self.max_current,
-                           self.current_time if current_time is None else current_time)
-        deadline = start + duration + self.timeout
-        last = None
-        first_reference, followed = self._state[1], False
-        while rclpy.ok():
-            time.sleep(self.period)
-            stamp, reference, feedback = self._state
-            if stamp == last or stamp <= start:
-                if self.now() - stamp > 0.5:
-                    self.get_logger().error(f'{self.state_topic} stopped: holding')
-                    self.send_joint_traj(self._state[2], self.hold_time)
-                    return NO_STATE, self._state[2]
+        # Handle the case if the srv is called again after a successfull grasp
+        if not self.has_grasped_object:
+            self.send_joint_traj(close_val, self.closing_time)
+            self.get_clock().sleep_for(Duration(seconds=self.closing_time))
+            self.is_open = False
+
+        object_detected = False
+        while rclpy.ok() and (self.get_clock().now()-init_time) < Duration(seconds=self.timeout):
+
+            if self.last_state is None:
+                self.get_logger().warning('Waiting for gripper state...')
                 continue
-            last = stamp
-            if not followed and abs(reference - first_reference) > 1e-5:
-                followed = True
-                self.log_lag(stamp - start)
-            outcome = monitor.update(stamp, reference, feedback)
-            if outcome == BLOCKED and not stall:
-                outcome = None
-            current = self.current_now()
-            if current is not None and over.update(stamp, current):
-                outcome, squeeze = BLOCKED, 0.0  # already pushing hard: no extra squeeze
-                self.get_logger().info(f'Current {current:.2f} A > {self.max_current} A')
-            if outcome == REACHED:
-                self.hold(target, target - origin)
-                return REACHED, feedback
-            if outcome == BLOCKED or stamp > deadline:
-                hold = hold_position(feedback, target, squeeze, self.low, self.high)
-                self.send_joint_traj(hold, self.hold_time)
-                self.hold(hold, target - feedback)
-                self.get_logger().info(f'Stopped at {feedback:.4f} (commanded {reference:.4f}),'
-                                       f' holding {hold:.4f}')
-                return (BLOCKED if outcome == BLOCKED else TIMEOUT), feedback
-        return TIMEOUT, None
 
-    def log_lag(self, lag: float) -> None:
-        """Report how late the controller started following the command just sent."""
-        if lag > 0.2:
-            self.get_logger().warn(
-                f'{self.controller_name} followed the command {lag:.2f} s late: meanwhile the '
-                'finger keeps going (wrapper on another machine than the controllers? '
-                'controller manager overloaded?)')
-        else:
-            self.get_logger().info(f'{self.controller_name} followed after {lag:.2f} s')
+            current_error = self.last_state - close_val[0]
 
-    def hold(self, position: float, push: float) -> None:
-        """Watch the current while holding `position`, pushing in the direction of `push`."""
-        if self._current_lookup is not None:
-            self._guard = HoldGuard(position, push, OverCurrent(self.max_current,
-                                                                self.current_time),
-                                    self.backoff_step, self.max_backoff, self.low, self.high,
-                                    settle=self.hold_settle)
+            # If the position error is > than a treshold means something
+            # is within the gripper: it grasped
+            if not object_detected and abs(current_error) > self.max_position_error:
+                object_detected = True
+                self.has_grasped_object = True
+                close_val = self.get_optimal_close()
+                self.send_joint_traj(close_val, self.closing_time)
+                break
 
-    def guard_cb(self) -> None:
-        if not self._lock.acquire(blocking=False):  # a move is running: it watches the current
-            return
-        try:
-            guard, current, state = self._guard, self.current_now(), self._state
-            if guard is None or current is None or state is None:
-                return
-            position = guard.update(self.now(), current, state[1])
-            if position is not None:
-                self.send_joint_traj(position, self.hold_time)
-                self.get_logger().warn(f'Current {current:.2f} A > {self.max_current} A: '
-                                       f'holding {position:.4f} ({guard.backoff * 1e3:.1f} mm '
-                                       'back)')
-            elif guard.exhausted and current > self.max_current:
-                self.get_logger().error(
-                    f'Current {current:.2f} A > {self.max_current} A after backing off '
-                    f'{guard.backoff * 1e3:.1f} mm (max_backoff)', throttle_duration_sec=5.0)
-        finally:
-            self._lock.release()
+        self.get_logger().info('Gripper closed!\n')
+        return res
 
-    def send_joint_traj(self, position: float, exec_time: float) -> None:
-        point = JointTrajectoryPoint(positions=[float(position)],
-                                     time_from_start=Duration(
-                                         nanoseconds=int(exec_time * 1e9)).to_msg())
-        self.cmd_pub.publish(JointTrajectory(joint_names=self.joint_names, points=[point]))
+    # Get optimal value to close the gripper to not let the joint stress in case of grasp
+    def get_optimal_close(self) -> list[float]:
+        optimal_close = self.last_state
+        # range: [close_value, open_value]
+        optimal_close = max(min(self.open_value[0], optimal_close), self.close_value[0])
+        self.get_logger().info(f'Optimal close: {optimal_close}')
+        return [optimal_close]
+
+    def send_joint_traj(self, j_positions: list[float], exec_time: float) -> None:
+        jt = JointTrajectory()
+        jt.joint_names = self.joint_names
+        p = JointTrajectoryPoint()
+        p.positions = j_positions
+        p.time_from_start = Duration(seconds=exec_time).to_msg()
+        jt.points.append(p)
+
+        self.get_logger().info('Sending: ' + str(j_positions[0]))
+        self.cmd_pub.publish(jt)
+        return
 
 
 def main(args=None):
-    rclpy.init(args=args)
+    rclpy.init()
     gg = GripperGrasper()
     executor = MultiThreadedExecutor()
+
     executor.add_node(gg)
-    try:
-        executor.spin()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        gg.destroy_node()
-        rclpy.try_shutdown()
+    executor.spin()
 
 
 if __name__ == '__main__':

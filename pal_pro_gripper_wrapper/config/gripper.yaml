@@ -6,45 +6,13 @@ ${EE_SIDE_PREFIX}_grasper_srv:
     joint_names: 
       - ${EE_SIDE_PREFIX}_finger_joint
 
-    # The finger is blocked (object, or a target it can't reach) when it lags the commanded
-    # position of the controller by more than 'max_position_error' while it moved less than
-    # 'stall_motion' in the last 'stall_time' s. It then holds there instead of pushing.
-    max_position_error: 0.005
-    stall_motion: 0.0005
-    stall_time: 0.1
+    # if the desired position differs by the actual position by
+    # being > than 'max_position_error', the robot is grasping
+    # 0.003 in order to say "grasped" for a objcet with width ~<1cm
+    max_position_error: 0.003
 
-    # After a grasp is blocked, hold this much further closed than where it stopped. The actuator
-    # builds effort on any error that stays: 0.5 mm reached ~1.9 A in attach_2.
-    grasp_squeeze: 0.0005
-    # A grasp stopping within this of close_value has grasped nothing
-    empty_tolerance: 0.003
-
-    # Motor current limit (A, absolute value). Over it for 'current_time' s while moving: stop
-    # and hold there. Over it while holding: back the hold off by 'backoff_step' from what the
-    # finger pushes on, up to 'max_backoff' in total.
-    current_topic: /actuators_statistics/values
-    # The motor current (signed, A; the drive limits it at ~4.5 A). Not 'board_current': that
-    # is the board supply. 'gripper.*current' matches 11 names on the robot.
-    current_statistic: gripper_finger_actuator.current_state
-    max_current: 3.0        # +-A
-    current_time: 0.05
-    backoff_step: 0.0005
-    max_backoff: 0.005
-    # Holding: the first 'hold_settle' s after reaching a hold don't count (the drive unwinds
-    # the contact peak by itself: -4.3 A to ~0 in ~1 s in gripper_test3). Only a lasting
-    # over-current backs off.
-    hold_settle: 1.0
-    # Releasing: stop only on over-current lasting this long (mid-stroke blips reach +1.75 A)
-    release_current_time: 0.2
-    # Time (s) to reach a hold after stopping: short, so the drive stops pushing sooner
-    hold_time: 0.05
-
-    # Give up this long (in s) after the opening/closing time: hold where it is
+    # Time for which the GripperGrasper analyzes the error (in s)
     timeout: 4.0
-
-    # Fastest commanded finger speed (joint units/s). The finger lags ~0.2 s behind the
-    # command, so at contact the command is ~speed x 0.2 s inside the object (7 mm at 0.03/s).
-    max_speed: 0.02
 
     # Publishing rate (of grasp state) - (in hz)
     rate: 1.0
@@ -54,6 +22,6 @@ ${EE_SIDE_PREFIX}_grasper_srv:
     closing_time: 1.5
 
     # Open/closed joint value for pal-pro-gripper
-    open_value: [0.077]
+    open_value: [0.07]
     close_value: [0.0]
 
