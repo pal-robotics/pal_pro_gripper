@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_wrapper
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.12.8 (2026-11-11)
+-------------------
 * Revert "make a current control"
   This reverts commit 371b97efb847bed0da37f5d7ed2372a610f43f43.
 * Revert "tune values, allow until +-3A"

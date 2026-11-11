@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.12.8 (2026-11-11)
+-------------------
 * adapt transmission to the new updates in mj-ros2-control
 * Contributors: Ortisa Poci
 
