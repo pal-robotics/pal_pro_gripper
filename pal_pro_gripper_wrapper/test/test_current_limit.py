@@ -13,10 +13,10 @@
 # limitations under the License.
 """Current limit of the grasper: over-current debounce, hold back-off, statistic lookup."""
 
+from pal_pro_gripper_wrapper.gripper_grasper_srv import HoldGuard, OverCurrent, StatisticLookup
 from pal_statistics_msgs.msg import StatisticsNames, StatisticsValues
 import pytest
 
-from pal_pro_gripper_wrapper.gripper_grasper_srv import HoldGuard, OverCurrent, StatisticLookup
 
 IDLE = 0.6       # A at rest (bag attach_2)
 STIFFNESS = 400  # A per m the hold is pushed past the contact (made up, for the loop)

@@ -13,10 +13,10 @@
 # limitations under the License.
 """Blocked/reached decisions of the grasper on a simulated finger (no ROS graph needed)."""
 
-import pytest
-
 from pal_pro_gripper_wrapper.gripper_grasper_srv import (BLOCKED, FingerMonitor, hold_position,
                                                          move_duration, REACHED)
+import pytest
+
 
 DT = 0.01  # the node's monitor period
 
