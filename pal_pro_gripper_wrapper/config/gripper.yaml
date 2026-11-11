@@ -23,28 +23,17 @@ ${EE_SIDE_PREFIX}_grasper_srv:
     # and hold there. Over it while holding: back the hold off by 'backoff_step' from what the
     # finger pushes on, up to 'max_backoff' in total.
     current_topic: /actuators_statistics/values
-    # The motor current (signed, A; the drive limits it at ~4.5 A). Not 'board_current': that
-    # is the board supply. 'gripper.*current' matches 11 names on the robot.
-    current_statistic: gripper_finger_actuator.current_state
-    max_current: 3.0        # +-A
+    current_statistic: gripper.*current
+    max_current: 2.0        # +-2A
     current_time: 0.05
     backoff_step: 0.0005
     max_backoff: 0.005
-    # Holding: the first 'hold_settle' s after reaching a hold don't count (the drive unwinds
-    # the contact peak by itself: -4.3 A to ~0 in ~1 s in gripper_test3). Only a lasting
-    # over-current backs off.
-    hold_settle: 1.0
-    # Releasing: stop only on over-current lasting this long (mid-stroke blips reach +1.75 A)
-    release_current_time: 0.2
-    # Time (s) to reach a hold after stopping: short, so the drive stops pushing sooner
-    hold_time: 0.05
 
     # Give up this long (in s) after the opening/closing time: hold where it is
     timeout: 4.0
 
-    # Fastest commanded finger speed (joint units/s). The finger lags ~0.2 s behind the
-    # command, so at contact the command is ~speed x 0.2 s inside the object (7 mm at 0.03/s).
-    max_speed: 0.02
+    # Fastest commanded finger speed (joint units/s).
+    max_speed: 0.03
 
     # Publishing rate (of grasp state) - (in hz)
     rate: 1.0
