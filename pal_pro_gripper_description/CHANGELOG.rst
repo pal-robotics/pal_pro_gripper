@@ -2,8 +2,8 @@
 Changelog for package pal_pro_gripper_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.12.9 (2026-11-12)
+-------------------
 * Removed redundant connect constraint + proper passive joint properties
   The chain is completely defined by the joint constraints + the passive
   joints were inheriting the global damping and friction, leading to stall
