@@ -20,11 +20,9 @@
     </xacro:macro>
 
 
-    <xacro:macro name="mj_gripper_equality" params="name anchor_r anchor_l" >
+    <xacro:macro name="mj_gripper_equality" params="name" >
         <xacro:include filename="$(find pal_pro_gripper_description)/urdf/gripper_limits.xacro" />
-        <connect name="${name}_r" body1="${name}_fingertip_right_link" body2="${name}_outer_finger_right_link"  active="true" anchor="${anchor_r}" solref="0.005 1" solimp="0.95 0.99 0.001"/>
-        <connect name="${name}_l" body1="${name}_fingertip_left_link" body2="${name}_outer_finger_left_link" active="true"  anchor="${anchor_l}" solref="0.005 1" solimp="0.95 0.99 0.001"/>
-
+        <!-- Coupling inner = outer and fingertip = -inner already closes each finger parallelogram -->
         <joint joint1="${name}_finger_joint" joint2="${name}_outer_finger_right_joint" polycoef="0 ${1.0 / outer_finger_multiplier}  0 0 0" solref="0.005 1" solimp="0.95 0.99 0.001"/>
         <joint joint1="${name}_finger_joint" joint2="${name}_inner_finger_right_joint" polycoef="0 ${1.0 / inner_finger_multiplier}  0 0 0" solref="0.005 1" solimp="0.95 0.99 0.001"/>
         <joint joint1="${name}_finger_joint" joint2="${name}_fingertip_right_joint"    polycoef="0 ${1.0 / fingertip_multiplier}  0 0 0"  solref="0.005 1" solimp="0.95 0.99 0.001"/>
